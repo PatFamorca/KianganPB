@@ -1,0 +1,1 @@
+import Setup from '@/components/Setup';export default function Page(){return <Setup/>}

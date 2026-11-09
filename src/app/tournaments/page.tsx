@@ -1,0 +1,1 @@
+import PublicTournaments from '@/components/PublicTournaments';export default function Page(){return <PublicTournaments/>}
