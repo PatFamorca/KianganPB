@@ -1,1 +1,1 @@
-import TournamentHub from '@/components/TournamentHub';export default function Page(){return <TournamentHub/>}
+import PublicTournaments from '@/components/PublicTournaments';export default function Page(){return <PublicTournaments/>}
