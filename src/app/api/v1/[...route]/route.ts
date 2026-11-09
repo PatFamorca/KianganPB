@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import {db,indexes,mongoClient} from '@/lib/db';
 import {selectFifoGroup, type QueueEntry} from '@/lib/queue-policy';
 import {identity,isAdmin,setLogin} from '@/lib/auth';
-import {roundRobin,singleElimination,doubleElimination,nextDoubleRound,teamsForFour,scoreValid} from '@/lib/engine.mjs';
+import {teamsForFour,scoreValid} from '@/lib/engine.mjs';
 export const runtime='nodejs';export const dynamic='force-dynamic';
 const ok=(data:any,status=200)=>NextResponse.json(data,{status});
 const err=(message:string,status=400)=>ok({error:message},status);
@@ -87,7 +87,7 @@ async function handler(req:NextRequest,{params}:{params:{route:string[]}}){try{
    }catch(e){await d.collection('guestClaims').deleteOne({sessionId,normalizedName});throw e}
  }
  const user=await identity();
- const publicGet=method==='GET'&&(['sessions','courts','tournaments','display','matches','players'].includes(path[0]));
+ const publicGet=method==='GET'&&(['sessions','courts','display','matches','players'].includes(path[0]));
  if(!user&&!publicGet)return err('Admin login required',401);
  const admin=isAdmin(user);
  const adminOnly=()=>{if(!admin)throw Error('ADMIN_ONLY')};
@@ -217,54 +217,12 @@ async function handler(req:NextRequest,{params}:{params:{route:string[]}}){try{
       const winIds=match.teams[a>b?0:1];await d.collection('queue').updateMany({sessionId:match.sessionId,playerId:{$in:winIds}},{$set:{joinedAt:new Date(0)}},{session:tx});
      }
     }
-    if(match.context==='tournament')await applyTournamentResult(d,match,a>b?0:1,tx);
     return {ok:true};
    }));
   }
  }
- if(path[0]==='tournaments'){
-  if(method==='GET'&&path.length===1)return ok(await d.collection('tournaments').find(visible).sort({createdAt:-1}).toArray());
-  if(method==='POST'&&path.length===1){adminOnly();const format=String(body.format||'round');if(!['round','single','double'].includes(format))return err('Invalid format');const r=await d.collection('tournaments').insertOne({name:String(body.name||'Tournament'),format,status:'registration',target:11,winBy:2,createdAt:now()});return ok({id:String(r.insertedId)},201)}
-  if(!path[1])return err('Tournament ID required');const tournamentId=oid(path[1]);const t=await d.collection('tournaments').findOne({_id:tournamentId,...visible});if(!t)return err('Tournament not found',404);
-  if(method==='GET'&&path.length===2){const [entries,matches]=await Promise.all([d.collection('entries').find({tournamentId}).toArray(),d.collection('matches').find({tournamentId}).sort({round:1,createdAt:1}).toArray()]);return ok({tournament:t,entries,matches})}
-  if(path.length===2&&method==='DELETE'){adminOnly();if(await d.collection('matches').findOne({tournamentId,status:'playing'}))return conflict('Finish active tournament matches before deleting');await d.collection('tournaments').updateOne({_id:tournamentId},{$set:{status:'cancelled',deletedAt:now()}});return ok({ok:true})}
-  if(path[2]==='register'&&method==='POST'){adminOnly();
-   if(t.status!=='registration')return err('Registration closed');const playerIds=arr(body.playerIds).map(oid);if(playerIds.length!==2||playerIds[0].equals(playerIds[1]))return err('Two distinct players required');
-   if(!admin){const mine=await d.collection('players').findOne({userId:oid(user!.id)});if(!mine||!playerIds.some((x:ObjectId)=>x.equals(mine._id)))return err('You must be on the team',403)}
-   const exists=await d.collection('entries').findOne({tournamentId,playerIds:{$in:playerIds}});if(exists)return err('Player already registered',409);
-   const r=await d.collection('entries').insertOne({tournamentId,playerIds,createdAt:now()});return ok({id:String(r.insertedId)},201)
-  }
-  if(path[2]==='generate'&&method==='POST'){
-   adminOnly();if(t.status!=='registration')return err('Already generated');const entries=await d.collection('entries').find({tournamentId}).toArray();if(entries.length<2)return err('At least two teams required');
-   const ids=entries.map(x=>String(x._id));let matches:any[]=[];let bracket:any=null;
-   if(t.format==='round')matches=roundRobin(ids).map((x,i)=>({...x,round:1,position:i,status:'pending'}));
-   if(t.format==='single'){bracket=singleElimination(ids);matches=bracket[0].filter((x:any)=>x.a&&x.b).map((x:any,i:number)=>({...x,round:1,position:i,status:'pending'}));}
-   if(t.format==='double'){bracket=doubleElimination(ids);matches=nextDoubleRound(bracket).map((x,i)=>({...x,round:1,position:i,status:'pending'}));}
-   await transaction(async tx=>{const update=await d.collection('tournaments').updateOne({_id:tournamentId,status:'registration'},{$set:{status:'active',bracket,round:1}},{session:tx});if(!update.modifiedCount)throw Error('Tournament already generated');if(matches.length)await d.collection('matches').insertMany(matches.map(x=>({...x,context:'tournament',tournamentId,teams:[oid(x.a),oid(x.b)],status:'pending',target:11,winBy:2,createdAt:now()})),{session:tx});});return ok({ok:true,matches:matches.length});
-  }
-  if(path[2]==='schedule'&&method==='POST'){
-   adminOnly();const courtId=oid(body.courtId);return ok(await transaction(async tx=>{if(await d.collection('matches').findOne({courtId,status:'playing'},{session:tx}))throw Error('Court busy');const m=await d.collection('matches').findOneAndUpdate({tournamentId,status:'pending'},{$set:{courtId,status:'playing',startedAt:now()}},{session:tx,returnDocument:'after',sort:{round:1,position:1}});if(!m)throw Error('No pending matches');return {matchId:String(m._id)};}));
-  }
- }
+
  if(path[0]==='display'&&method==='GET'){const [courts,matches]=await Promise.all([d.collection('courts').find().toArray(),d.collection('matches').find({status:'playing'}).toArray()]);return ok({courts,matches})}
  return err('Route not found',404);
  }catch(e:any){console.error('API error',e);if(e.message==='ADMIN_ONLY')return err('Admin access required',403);if(e.code===11000)return err('Duplicate record',409);return err(e.message||'Server error',500)}}
-async function applyTournamentResult(d:any,match:any,winner:number,tx:ClientSession){
- const t=await d.collection('tournaments').findOne({_id:match.tournamentId},{session:tx});if(!t)return;
- const roundMatches=await d.collection('matches').find({tournamentId:match.tournamentId,round:match.round},{session:tx}).toArray();if(roundMatches.some((x:any)=>x.status!=='completed'))return;
- if(t.format==='round'){await d.collection('tournaments').updateOne({_id:t._id},{$set:{status:'completed'}},{session:tx});return;}
- if(t.format==='single'){
-  const winners=roundMatches.map((x:any)=>String(x.teams[x.winner]));
-  if(winners.length===1){await d.collection('tournaments').updateOne({_id:t._id},{$set:{status:'completed',champion:winners[0]}},{session:tx});return;}
-  const next=[];for(let i=0;i+1<winners.length;i+=2)next.push({a:winners[i],b:winners[i+1]});
-  if(next.length)await d.collection('matches').insertMany(next.map((x,i)=>({context:'tournament',tournamentId:t._id,teams:[oid(x.a),oid(x.b)],round:match.round+1,position:i,status:'pending',target:11,winBy:2,createdAt:now()})),{session:tx});
- }
- if(t.format==='double'){
-  const state=t.bracket;for(const m of roundMatches){const loser=String(m.teams[m.winner===0?1:0]);state.losses[loser]++;state.history.push({winner:String(m.teams[m.winner]),loser});}
-  state.round++;
-  const live=state.entries.filter((id:string)=>state.losses[id]<2);
-  if(live.length===1){state.champion=live[0];await d.collection('tournaments').updateOne({_id:t._id},{$set:{bracket:state,status:'completed',champion:live[0]}},{session:tx});return;}
-  const next=nextDoubleRound(state);await d.collection('tournaments').updateOne({_id:t._id},{$set:{bracket:state,round:state.round+1}},{session:tx});if(next.length)await d.collection('matches').insertMany(next.map((x:any,i:number)=>({context:'tournament',tournamentId:t._id,teams:[oid(x.a),oid(x.b)],round:match.round+1,position:i,status:'pending',target:11,winBy:2,createdAt:now()})),{session:tx});
- }
-}
 export const GET=handler;export const POST=handler;export const PATCH=handler;export const DELETE=handler;

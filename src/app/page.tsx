@@ -33,12 +33,6 @@ export default function Home() {
           <p>See court availability, ongoing games, the waiting queue and winner rankings.</p>
           <Link className="home-action-link" href="/display">View live courts</Link>
         </article>
-        <article className="home-action-card">
-          <span aria-hidden="true" className="home-action-icon">🏆</span>
-          <h2>Tournaments</h2>
-          <p>Check tournament schedules, teams and results.</p>
-          <Link className="home-action-link" href="/tournaments">View tournaments</Link>
-        </article>
       </section>
     </main>
   );
