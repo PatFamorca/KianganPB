@@ -2,7 +2,7 @@ import {NextRequest,NextResponse} from 'next/server';
 import {ObjectId,ClientSession} from 'mongodb';
 import bcrypt from 'bcryptjs';
 import {db,indexes,mongoClient} from '@/lib/db';
-import {selectFifoGroup} from '@/lib/queue-policy';
+import {selectFifoGroup, type QueueEntry} from '@/lib/queue-policy';
 import {identity,isAdmin,setLogin} from '@/lib/auth';
 import {roundRobin,singleElimination,doubleElimination,nextDoubleRound,teamsForFour,scoreValid} from '@/lib/engine.mjs';
 export const runtime='nodejs';export const dynamic='force-dynamic';
@@ -138,7 +138,7 @@ async function handler(req:NextRequest,{params}:{params:{route:string[]}}){try{
    adminOnly();if(session.status!=='active')return conflict('Enable this Open Play session before assigning matches');const courtId=oid(body.courtId);if(!session.courtIds.some((x:ObjectId)=>x.equals(courtId)))return err('Court not in session');
    return ok(await transaction(async tx=>{
     const busy=await d.collection('matches').findOne({courtId,status:'playing'},{session:tx});if(busy)throw Error('Court is busy');
-    const waiting=await d.collection('queue').find({sessionId,active:true,status:'waiting'},{session:tx}).sort({joinedAt:1}).limit(100).toArray();if(waiting.length<4)throw Error('Need four waiting players');
+    const waiting=await d.collection<QueueEntry>('queue').find({sessionId,active:true,status:'waiting'},{session:tx}).sort({joinedAt:1}).limit(100).toArray();if(waiting.length<4)throw Error('Need four waiting players');
     const chosen=session.queuePolicy==='fifo'?selectFifoGroup(waiting):waiting.slice(0,4);const players=await d.collection('players').find({_id:{$in:chosen.map(x=>x.playerId)}},{session:tx}).toArray();const byId=new Map(players.map(x=>[String(x._id),x]));const ordered=chosen.map(x=>({...byId.get(String(x.playerId))!,rating:({beginner:1,intermediate:3,advanced:5} as Record<string,number>)[x.skillLevel]||byId.get(String(x.playerId))?.rating||3}));
     const teams=teamsForFour(ordered,session.teamPolicy==='balanced'?'balanced':session.teamPolicy==='random'?'random':'fixed');
     const r=await d.collection('matches').insertOne({context:'open',sessionId,courtId,teams:teams.map(x=>x.map(oid)),status:'playing',createdAt:now(),startedAt:now(),target:11,winBy:2},{session:tx});
