@@ -13,7 +13,8 @@ export async function indexes(){const d=await db(); await Promise.all([
  d.collection('queue').createIndex({sessionId:1,active:1,joinedAt:1}),
  d.collection('matches').createIndex({courtId:1,status:1}),
  d.collection('matches').createIndex({courtId:1},{unique:true,partialFilterExpression:{status:'playing',courtId:{$type:'objectId'}}}),
- d.collection('entries').createIndex({divisionId:1,playerIds:1}),
+ d.collection('matches').createIndex({sessionId:1,status:1,archivedAt:1}),
+ d.collection('queue').createIndex({sessionId:1,active:1,status:1,joinedAt:1}),
  d.collection('courts').createIndex({name:1},{unique:true}),
  ]);}
 

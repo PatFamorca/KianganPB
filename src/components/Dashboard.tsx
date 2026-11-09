@@ -1,5 +1,5 @@
 'use client';
-import OpenPlayLive from './OpenPlayLive';import {useEffect,useState,useCallback} from 'react';
+import OpenPlayLive from './OpenPlayLive';import {useEffect,useState,useCallback,useRef} from 'react';
 const api=async(path:string,method='GET',data?:any)=>{const r=await fetch('/api/v1/'+path,{method,headers:{'Content-Type':'application/json'},body:data?JSON.stringify(data):undefined,cache:'no-store'});const j=await r.json();if(!r.ok)throw Error(j.error||'Request failed');return j};
 const id=(x:any)=>String(x?._id||x||'');
 export default function Dashboard({admin=false,display=false}:{admin?:boolean;display?:boolean}){
@@ -14,9 +14,39 @@ export default function Dashboard({admin=false,display=false}:{admin?:boolean;di
  const scoreFor=(matchId:string)=>scores[matchId]||{a:'11',b:'7'};
  const setMatchScore=(matchId:string,side:'a'|'b',value:string)=>setScores(prev=>({...prev,[matchId]:{...(prev[matchId]||{a:'11',b:'7'}),[side]:value}}));
  const pname=(x:any)=>players.find(p=>id(p)===id(x))?.name||detail?.playerNames?.find((p:any)=>id(p)===id(x))?.name||String(x).slice(-6);
- const refresh=useCallback(async(silent=false)=>{try{const [m,c,p,s]=await Promise.all([api('auth/me'),api('courts'),api('players').catch(()=>[]),api('sessions')]);setMe(m.user);setCourts(c);setPlayers(p);setSessions(s);if(selected){const found=s.some((x:any)=>id(x)===selected);setDetail(found?await api('sessions/'+selected):null)}}catch(e:any){if(!silent)setError(e.message)}},[selected]);
- useEffect(()=>{refresh();const timer=setInterval(()=>{if(!document.hidden)refresh(true)},12000);const focus=()=>refresh(true);window.addEventListener('focus',focus);return()=>{clearInterval(timer);window.removeEventListener('focus',focus)}},[refresh]);
- async function act(path:string,data?:any,method='POST'){if(busy)return false;setBusy(true);try{setError('');setNotice('');const result=await api(path,method,data);setNotice('Saved successfully');if(result.id&&path==='sessions')setSelected(result.id);await refresh();return true}catch(e:any){setError(e.message);return false}finally{setBusy(false)}}
+ const refreshInFlight=useRef(false);
+ const pendingRefresh=useRef(false);
+ const refreshAgain=useRef<()=>void>(()=>{});
+ const lastMeta=useRef(0);
+ const selectedRef=useRef(selected);selectedRef.current=selected;
+ const refresh=useCallback(async(full=false)=>{
+  if(refreshInFlight.current){pendingRefresh.current=true;return;}
+  refreshInFlight.current=true;
+  try{
+   const current=selectedRef.current;
+   const fetchMeta=full||!lastMeta.current||Date.now()-lastMeta.current>45000;
+   const [metadata,sessionDetail]=await Promise.all([
+    fetchMeta?Promise.all([api('auth/me'),api('courts'),api('players').catch(()=>[]),api('sessions')]):Promise.resolve(null),
+    current?api('sessions/'+current):Promise.resolve(null)
+   ]);
+   if(metadata){const [m,c,p,s]=metadata;setMe(m.user);setCourts(c);setPlayers(p);setSessions(s);lastMeta.current=Date.now();if(current&&!s.some((x:any)=>id(x)===current))setDetail(null)}
+   if(current===selectedRef.current&&sessionDetail)setDetail(sessionDetail);
+  }catch(e:any){setError(e.message)}finally{refreshInFlight.current=false;if(pendingRefresh.current){pendingRefresh.current=false;setTimeout(()=>refreshAgain.current(),0)}}
+ },[]);
+ refreshAgain.current=()=>{void refresh(true)};
+ useEffect(()=>{void refresh(true);const timer=setInterval(()=>{if(!document.hidden)void refresh()},6000);const focus=()=>{if(!document.hidden)void refresh()};window.addEventListener('focus',focus);document.addEventListener('visibilitychange',focus);return()=>{clearInterval(timer);window.removeEventListener('focus',focus);document.removeEventListener('visibilitychange',focus)}},[refresh]);
+ useEffect(()=>{if(selected)void refresh()},[selected,refresh]);
+ async function act(path:string,data?:any,method='POST'){
+  if(busy)return false;setBusy(true);setError('');setNotice('');
+  try{
+   const result=await api(path,method,data);
+   setNotice('Saved successfully');
+   if(result.id&&path==='sessions'){setSelected(result.id);selectedRef.current=result.id}
+   // Release the action immediately; refresh is non-blocking.
+   setBusy(false);lastMeta.current=0;void refresh(true);
+   return true;
+  }catch(e:any){setError(e.message);setBusy(false);return false}
+ }
  async function remove(kind:'courts'|'sessions'|'players',item:any){if(!window.confirm(`Delete ${item.name}? This removes it from active lists while preserving historical records.`))return;const success=await act(kind+'/'+id(item),undefined,'DELETE');if(success){if(kind==='sessions'&&selected===id(item)){setSelected('');setDetail(null)}}}
  async function resetSession(item:any){
   if(!window.confirm(`Reset ${item.name}? This clears the queue AND resets wins/games rankings to zero. Historical matches remain archived but no longer count toward rankings. Active matches must be completed first.`))return;
