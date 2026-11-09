@@ -186,7 +186,7 @@ async function handler(req:NextRequest,{params}:{params:{route:string[]}}){try{
     }else chosen=session.queuePolicy==='fifo'?selectFifoGroup(waiting):waiting.slice(0,4);
     const players=await d.collection('players').find({_id:{$in:chosen.map(x=>x.playerId)}},{session:tx}).toArray();const byId=new Map(players.map(x=>[String(x._id),x]));const ordered=chosen.map(x=>({...byId.get(String(x.playerId))!,rating:({beginner:1,intermediate:3,advanced:5} as Record<string,number>)[x.skillLevel || 'beginner']||byId.get(String(x.playerId))?.rating||3}));
     const teams=manual?[[ordered[0],ordered[1]],[ordered[2],ordered[3]]]:teamsForFour(ordered,session.teamPolicy==='balanced'?'balanced':session.teamPolicy==='random'?'random':'fixed');
-    const r=await d.collection('matches').insertOne({context:'open',sessionId,courtId,teams:teams.map(x=>x.map(oid)),status:'playing',createdAt:now(),startedAt:now(),target:11,winBy:2},{session:tx});
+    const r=await d.collection('matches').insertOne({context:'open',sessionId,courtId,teams:teams.map(team=>team.map(player=>typeof player==='string'?oid(player):player._id)),status:'playing',createdAt:now(),startedAt:now(),target:11,winBy:2},{session:tx});
     const upd=await d.collection('queue').updateMany({_id:{$in:chosen.map(x=>x._id)},status:'waiting'},{$set:{status:'playing',matchId:r.insertedId}},{session:tx});if(upd.modifiedCount!==4)throw Error('Queue changed, retry');return {matchId:String(r.insertedId),teams};
    }));
   }
