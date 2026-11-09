@@ -207,3 +207,12 @@ h2{line-height:1.25}
 .home-actions{grid-template-columns:repeat(2,minmax(0,1fr));max-width:1160px;margin-top:28px}
 @media(max-width:780px){.home-hero{grid-template-columns:1fr;gap:22px}.home-hero-content{align-items:stretch;gap:14px}.home-hero-content h1{font-size:clamp(30px,7vw,42px)}.home-hero-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.home-hero-buttons .home-action-link{padding:10px 8px}.home-hero-poster .home-poster{max-width:460px}.home-page{padding:18px 12px 48px}.home-actions{grid-template-columns:1fr}}
 @media(max-width:390px){.home-hero-buttons{grid-template-columns:1fr}.court-net{flex-basis:19px}.court-side{padding:5px 2px}.court-player strong{font-size:12px}.court-player small{font-size:10px}}
+
+/* v6.5 admin organization and bulk player controls */
+.admin-tabs{max-width:720px!important}
+.player-bulk-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:12px;padding:10px 0;margin-bottom:8px;border-bottom:1px solid var(--line)}
+.player-bulk-toolbar label{display:flex;align-items:center;gap:8px;margin:0}
+.player-bulk-toolbar input[type=checkbox],.players-management .entity-row input[type=checkbox]{width:18px;height:18px;flex-shrink:0;accent-color:var(--accent)}
+.player-bulk-toolbar span{color:var(--muted);font-size:13px;margin-right:auto}
+.player-bulk-toolbar button{min-height:36px;padding:7px 12px}
+@media(max-width:700px){.player-bulk-toolbar button{width:100%}.admin-tabs button{flex:1 1 28%}}
