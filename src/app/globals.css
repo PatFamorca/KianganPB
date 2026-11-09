@@ -187,3 +187,23 @@ h2{line-height:1.25}
 
 /* Final admin court assignment and player details */
 .manual-assignment{margin:1rem 0}.manual-assignment-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.75rem;margin:1rem 0}.manual-assignment-grid label{display:flex;flex-direction:column;gap:.4rem}.manual-assignment-grid select{width:100%;min-width:0}.court-player{display:flex;flex-direction:column;align-items:center;gap:.2rem;padding:.2rem}.court-player small{font-size:.72rem;opacity:.85;text-transform:capitalize}.court-side{display:flex;flex-wrap:wrap;justify-content:space-around;gap:.5rem}@media(max-width:600px){.manual-assignment-grid{grid-template-columns:1fr 1fr}.manual-assignment-grid label:first-child{grid-column:1/-1}}
+
+/* v6.3: vertical net and mobile-first homepage */
+.court-surface{flex-direction:row;min-height:205px;align-items:stretch;padding:12px}
+.court-side{flex:1 1 0;min-width:0;flex-direction:column;flex-wrap:nowrap;justify-content:space-evenly;padding:8px 5px}
+.court-net{flex:0 0 25px;align-self:stretch;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;text-orientation:mixed;border-top:0;border-left:3px dashed #f6fff5;padding:0 0 0 5px;letter-spacing:.2em;font-size:9px}
+.court-player{min-width:0;width:100%;overflow-wrap:anywhere}
+.home-page{width:100%;max-width:1160px;margin:0 auto;padding:28px 18px 64px}
+.home-hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(20px,4vw,55px);align-items:center}
+.home-hero-content{display:flex;flex-direction:column;align-items:flex-start;gap:18px}
+.home-hero-content h1{font-size:clamp(34px,4.4vw,58px);line-height:1.12;margin:0}
+.home-hero-content>p{font-size:clamp(15px,1.6vw,19px);line-height:1.6;margin:0;max-width:550px}
+.home-hero-buttons{display:flex;gap:12px;flex-wrap:wrap}
+.home-link-outline{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.home-schedule{display:flex;flex-direction:column;gap:7px;padding:18px;border:1px solid var(--line);border-radius:16px;background:var(--panel);width:100%;max-width:470px}
+.home-schedule small{opacity:.75}
+.home-hero-poster{display:flex;justify-content:center;min-width:0}
+.home-hero-poster .home-poster{width:100%;max-width:420px;height:auto;object-fit:contain}
+.home-actions{grid-template-columns:repeat(2,minmax(0,1fr));max-width:1160px;margin-top:28px}
+@media(max-width:780px){.home-hero{grid-template-columns:1fr;gap:22px}.home-hero-content{align-items:stretch;gap:14px}.home-hero-content h1{font-size:clamp(30px,7vw,42px)}.home-hero-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.home-hero-buttons .home-action-link{padding:10px 8px}.home-hero-poster .home-poster{max-width:460px}.home-page{padding:18px 12px 48px}.home-actions{grid-template-columns:1fr}}
+@media(max-width:390px){.home-hero-buttons{grid-template-columns:1fr}.court-net{flex-basis:19px}.court-side{padding:5px 2px}.court-player strong{font-size:12px}.court-player small{font-size:10px}}
