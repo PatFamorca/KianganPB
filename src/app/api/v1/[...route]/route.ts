@@ -137,7 +137,7 @@ async function handler(req:NextRequest,{params}:{params:{route:string[]}}){try{
    const stats=new Map<string,{playerId:string;wins:number;games:number}>();
    for(const m of historical){if(!Array.isArray(m.teams))continue;for(let side=0;side<2;side++){for(const pid of (m.teams[side]||[])){const key=String(pid);const row=stats.get(key)||{playerId:key,wins:0,games:0};row.games++;if(m.winner===side)row.wins++;stats.set(key,row)}}}
    const leaderboard=[...stats.values()].sort((a,b)=>b.wins-a.wins||b.wins/Math.max(1,b.games)-a.wins/Math.max(1,a.games)||a.playerId.localeCompare(b.playerId));
-   const playerIds=[...queue.map(q=>q.playerId),...historical.flatMap(m=>Array.isArray(m.teams)?m.teams.flat():[])];const playerNames=await d.collection('players').find({_id:{$in:playerIds}}).project({name:1,skillLevel:1,playStyle:1}).toArray();return ok({session,queue,matches,playerNames,leaderboard})}
+   const playerIds=[...queue.map(q=>q.playerId),...matches.flatMap(m=>Array.isArray(m.teams)?m.teams.flat():[])];const playerNames=await d.collection('players').find({_id:{$in:playerIds}}).project({name:1,skillLevel:1,playStyle:1}).toArray();return ok({session,queue,matches,playerNames,leaderboard})}
   if(path.length===2&&method==='PATCH'){adminOnly();if(!['active','disabled'].includes(body.status))return err('Invalid session status');if(body.status==='active'&&session.status==='completed')return conflict('Completed sessions cannot be reopened');await d.collection('sessions').updateOne({_id:sessionId},{$set:{status:body.status}});return ok({ok:true})}
   if(path.length===2&&method==='DELETE'){adminOnly();if(await d.collection('matches').findOne({sessionId,status:'playing'}))return conflict('Complete active matches before deleting the session');await d.collection('sessions').updateOne({_id:sessionId},{$set:{status:'disabled',deletedAt:now()}});await d.collection('queue').updateMany({sessionId,active:true},{$set:{active:false,status:'left'}});return ok({ok:true})}
   if(path[2]==='reset'&&method==='POST'){
@@ -165,27 +165,6 @@ async function handler(req:NextRequest,{params}:{params:{route:string[]}}){try{
   }
   if(path[2]==='rest'&&method==='POST'){adminOnly();const playerId=(await d.collection('players').findOne({userId:oid(user!.id)}))?._id;if(!playerId)return err('Player not found');await d.collection('queue').updateOne({sessionId,playerId,status:'waiting'},{$set:{status:'resting'}});return ok({ok:true})}
   if(path[2]==='return'&&method==='POST'){adminOnly();const playerId=(await d.collection('players').findOne({userId:oid(user!.id)}))?._id;if(!playerId)return err('Player not found');await d.collection('queue').updateOne({sessionId,playerId,status:'resting'},{$set:{status:'waiting',joinedAt:now()}});return ok({ok:true})}
-  if(path[2]==='assign-manual'&&method==='POST'){
-   adminOnly();
-   if(session.status!=='active')return conflict('Enable this Open Play session before assigning matches');
-   const selectedIds=Array.isArray(body.playerIds)?body.playerIds:[];
-   if(selectedIds.length!==4||new Set(selectedIds.map(String)).size!==4)return err('Select exactly four different players');
-   const playerIds=selectedIds.map((v:string)=>oid(v));
-   const courtId=oid(body.courtId);
-   if(!session.courtIds.some((v:any)=>String(v)===String(courtId)))return err('Court is not assigned to this session');
-   return ok(await transaction(async tx=>{
-    const court=await d.collection('courts').findOne({_id:courtId,enabled:true,...visible},{session:tx});
-    if(!court)throw Error('Court is closed or unavailable');
-    const occupied=await d.collection('matches').findOne({courtId,status:'playing'},{session:tx});
-    if(occupied)throw Error('Court is busy');
-    const waiting=await d.collection('queue').find({sessionId,active:true,status:'waiting',playerId:{$in:playerIds}},{session:tx}).toArray();
-    if(waiting.length!==4||new Set(waiting.map(q=>String(q.playerId))).size!==4)throw Error('All four players must be waiting in this session');
-    const result=await d.collection('matches').insertOne({context:'open',sessionId,courtId,teams:[[playerIds[0],playerIds[1]],[playerIds[2],playerIds[3]]],status:'playing',createdAt:now(),startedAt:now(),target:11,winBy:2},{session:tx});
-    const updated=await d.collection('queue').updateMany({_id:{$in:waiting.map(q=>q._id)},status:'waiting',active:true},{$set:{status:'playing',matchId:result.insertedId}},{session:tx});
-    if(updated.modifiedCount!==4)throw Error('Queue changed, please retry');
-    return {matchId:String(result.insertedId)};
-   }));
-  }
   if(path[2]==='assign'&&method==='POST'){
    adminOnly();if(session.status!=='active')return conflict('Enable this Open Play session before assigning matches');
    return ok(await transaction(async tx=>{
@@ -196,8 +175,17 @@ async function handler(req:NextRequest,{params}:{params:{route:string[]}}){try{
     if(!available)throw Error('No court available');
     const courtId=available._id;
     const waiting=await d.collection<QueueEntry>('queue').find({sessionId,active:true,status:'waiting'},{session:tx}).sort({joinedAt:1}).limit(100).toArray();if(waiting.length<4)throw Error('Need four waiting players');
-    const chosen=session.queuePolicy==='fifo'?selectFifoGroup(waiting):waiting.slice(0,4);const players=await d.collection('players').find({_id:{$in:chosen.map(x=>x.playerId)}},{session:tx}).toArray();const byId=new Map(players.map(x=>[String(x._id),x]));const ordered=chosen.map(x=>({...byId.get(String(x.playerId))!,rating:({beginner:1,intermediate:3,advanced:5} as Record<string,number>)[x.skillLevel || 'beginner']||byId.get(String(x.playerId))?.rating||3}));
-    const teams=teamsForFour(ordered,session.teamPolicy==='balanced'?'balanced':session.teamPolicy==='random'?'random':'fixed');
+    const manual=body.playerIds!==undefined;
+    let chosen:typeof waiting;
+    if(manual){
+     if(!Array.isArray(body.playerIds)||body.playerIds.length!==4||body.playerIds.some((v:unknown)=>typeof v!=='string'))throw Error('Select exactly four players');
+     const ids=body.playerIds.map((v:string)=>oid(v));
+     if(new Set(ids.map(String)).size!==4)throw Error('Players must be unique');
+     chosen=ids.map((pid:any)=>waiting.find(q=>String(q.playerId)===String(pid))).filter((q:any)=>q!==undefined) as typeof waiting;
+     if(chosen.length!==4)throw Error('All four selected players must be waiting in this session');
+    }else chosen=session.queuePolicy==='fifo'?selectFifoGroup(waiting):waiting.slice(0,4);
+    const players=await d.collection('players').find({_id:{$in:chosen.map(x=>x.playerId)}},{session:tx}).toArray();const byId=new Map(players.map(x=>[String(x._id),x]));const ordered=chosen.map(x=>({...byId.get(String(x.playerId))!,rating:({beginner:1,intermediate:3,advanced:5} as Record<string,number>)[x.skillLevel || 'beginner']||byId.get(String(x.playerId))?.rating||3}));
+    const teams=manual?[[ordered[0],ordered[1]],[ordered[2],ordered[3]]]:teamsForFour(ordered,session.teamPolicy==='balanced'?'balanced':session.teamPolicy==='random'?'random':'fixed');
     const r=await d.collection('matches').insertOne({context:'open',sessionId,courtId,teams:teams.map(x=>x.map(oid)),status:'playing',createdAt:now(),startedAt:now(),target:11,winBy:2},{session:tx});
     const upd=await d.collection('queue').updateMany({_id:{$in:chosen.map(x=>x._id)},status:'waiting'},{$set:{status:'playing',matchId:r.insertedId}},{session:tx});if(upd.modifiedCount!==4)throw Error('Queue changed, retry');return {matchId:String(r.insertedId),teams};
    }));
