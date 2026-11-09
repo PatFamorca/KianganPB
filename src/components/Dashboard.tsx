@@ -3,7 +3,10 @@ const api=async(path:string,method='GET',data?:any)=>{const r=await fetch('/api/
 const id=(x:any)=>String(x?._id||x||'');
 export default function Dashboard({admin=false,display=false}:{admin?:boolean;display?:boolean}){
  const [me,setMe]=useState<any>(null),[courts,setCourts]=useState<any[]>([]),[players,setPlayers]=useState<any[]>([]),[sessions,setSessions]=useState<any[]>([]),[tournaments,setTournaments]=useState<any[]>([]),[selected,setSelected]=useState(''),[selectedT,setSelectedT]=useState(''),[detail,setDetail]=useState<any>(null),[tDetail,setTDetail]=useState<any>(null),[error,setError]=useState(''),[notice,setNotice]=useState('');
- const [name,setName]=useState(''),[format,setFormat]=useState('round'),[court,setCourt]=useState(''),[p1,setP1]=useState(''),[p2,setP2]=useState(''),[scoreA,setScoreA]=useState('11'),[scoreB,setScoreB]=useState('7');
+ const [courtName,setCourtName]=useState('');
+const [sessionName,setSessionName]=useState('');
+const [tournamentName,setTournamentName]=useState('');
+const [guestName,setGuestName]=useState('');,[format,setFormat]=useState('round'),[court,setCourt]=useState(''),[p1,setP1]=useState(''),[p2,setP2]=useState(''),[scoreA,setScoreA]=useState('11'),[scoreB,setScoreB]=useState('7');
  const pname=(x:any)=>players.find(p=>id(p)===id(x))?.name||String(x).slice(-6);
  const ename=(x:any)=>tDetail?.entries?.find((e:any)=>id(e)===id(x))?.playerIds.map(pname).join(' + ')||String(x).slice(-6);
  async function refresh(){try{const [m,c,p,s,t]=await Promise.all([api('auth/me'),api('courts'),api('players').catch(()=>[]),api('sessions'),api('tournaments')]);setMe(m.user);setCourts(c);setPlayers(p);setSessions(s);setTournaments(t);if(selected)setDetail(await api('sessions/'+selected));if(selectedT)setTDetail(await api('tournaments/'+selectedT));}catch(e:any){setError(e.message)}}
