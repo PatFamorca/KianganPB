@@ -165,6 +165,27 @@ async function handler(req:NextRequest,{params}:{params:{route:string[]}}){try{
   }
   if(path[2]==='rest'&&method==='POST'){adminOnly();const playerId=(await d.collection('players').findOne({userId:oid(user!.id)}))?._id;if(!playerId)return err('Player not found');await d.collection('queue').updateOne({sessionId,playerId,status:'waiting'},{$set:{status:'resting'}});return ok({ok:true})}
   if(path[2]==='return'&&method==='POST'){adminOnly();const playerId=(await d.collection('players').findOne({userId:oid(user!.id)}))?._id;if(!playerId)return err('Player not found');await d.collection('queue').updateOne({sessionId,playerId,status:'resting'},{$set:{status:'waiting',joinedAt:now()}});return ok({ok:true})}
+  if(path[2]==='assign-manual'&&method==='POST'){
+   adminOnly();
+   if(session.status!=='active')return conflict('Enable this Open Play session before assigning matches');
+   const selectedIds=Array.isArray(body.playerIds)?body.playerIds:[];
+   if(selectedIds.length!==4||new Set(selectedIds.map(String)).size!==4)return err('Select exactly four different players');
+   const playerIds=selectedIds.map((v:string)=>oid(v));
+   const courtId=oid(body.courtId);
+   if(!session.courtIds.some((v:any)=>String(v)===String(courtId)))return err('Court is not assigned to this session');
+   return ok(await transaction(async tx=>{
+    const court=await d.collection('courts').findOne({_id:courtId,enabled:true,...visible},{session:tx});
+    if(!court)throw Error('Court is closed or unavailable');
+    const occupied=await d.collection('matches').findOne({courtId,status:'playing'},{session:tx});
+    if(occupied)throw Error('Court is busy');
+    const waiting=await d.collection('queue').find({sessionId,active:true,status:'waiting',playerId:{$in:playerIds}},{session:tx}).toArray();
+    if(waiting.length!==4||new Set(waiting.map(q=>String(q.playerId))).size!==4)throw Error('All four players must be waiting in this session');
+    const result=await d.collection('matches').insertOne({context:'open',sessionId,courtId,teams:[[playerIds[0],playerIds[1]],[playerIds[2],playerIds[3]]],status:'playing',createdAt:now(),startedAt:now(),target:11,winBy:2},{session:tx});
+    const updated=await d.collection('queue').updateMany({_id:{$in:waiting.map(q=>q._id)},status:'waiting',active:true},{$set:{status:'playing',matchId:result.insertedId}},{session:tx});
+    if(updated.modifiedCount!==4)throw Error('Queue changed, please retry');
+    return {matchId:String(result.insertedId)};
+   }));
+  }
   if(path[2]==='assign'&&method==='POST'){
    adminOnly();if(session.status!=='active')return conflict('Enable this Open Play session before assigning matches');
    return ok(await transaction(async tx=>{

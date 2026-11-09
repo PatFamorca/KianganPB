@@ -184,3 +184,6 @@ h2{line-height:1.25}
 .live-display-header label{display:grid;gap:6px;min-width:min(100%,230px);font-size:13px;font-weight:700}
 .live-display-header select{width:100%;min-height:44px}
 @media(max-width:640px){.live-display-header{align-items:stretch}.live-display-header label{width:100%}}
+
+/* Final admin court assignment and player details */
+.manual-assignment{margin:1rem 0}.manual-assignment-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.75rem;margin:1rem 0}.manual-assignment-grid label{display:flex;flex-direction:column;gap:.4rem}.manual-assignment-grid select{width:100%;min-width:0}.court-player{display:flex;flex-direction:column;align-items:center;gap:.2rem;padding:.2rem}.court-player small{font-size:.72rem;opacity:.85;text-transform:capitalize}.court-side{display:flex;flex-wrap:wrap;justify-content:space-around;gap:.5rem}@media(max-width:600px){.manual-assignment-grid{grid-template-columns:1fr 1fr}.manual-assignment-grid label:first-child{grid-column:1/-1}}
