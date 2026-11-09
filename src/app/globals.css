@@ -128,3 +128,31 @@ h2{line-height:1.25}
 .live-section{display:grid;gap:16px}.live-section-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.live-section-heading h3{margin:0}.live-section .court-board{margin:0}
 .live-lower-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}.live-subsection{background:#10251e;border:1px solid var(--line);border-radius:14px;padding:14px;min-width:0}.queue-list,.ranking-list{margin-top:12px;display:grid;gap:6px;max-height:460px;overflow-y:auto}.queue-entry,.ranking-entry{display:flex;align-items:center;gap:10px;padding:9px 10px;background:#1b3931;border-radius:9px;min-width:0}.queue-position,.rank-position{flex:0 0 30px;text-align:center;color:var(--accent);font-weight:800}.queue-person{display:grid;min-width:0;flex:1}.queue-person strong,.ranking-entry strong{overflow-wrap:anywhere;font-size:14px}.queue-person small,.ranking-entry small{color:var(--muted);font-size:11px}.queue-tags{display:flex;gap:5px;flex-wrap:wrap;justify-content:end}.queue-tags span{font-size:11px;padding:3px 7px;border-radius:100px;background:#315344;text-transform:capitalize}.ranking-entry strong{flex:1;min-width:0}.rank-wins{white-space:nowrap;font-weight:700}.empty-message{padding:12px;color:var(--muted);font-size:14px}.public-live-board{margin-top:18px}
 @media(max-width:760px){.session-controls{grid-template-columns:1fr}.session-settings{grid-template-columns:1fr}.session-controls .assign-button{width:100%}.session-checkin{flex-direction:column;align-items:stretch}.session-checkin label,.session-checkin button{width:100%}.live-lower-grid{grid-template-columns:1fr}.live-subsection{padding:10px}.queue-entry{padding:8px 6px}.queue-tags{max-width:130px}.ranking-entry{gap:6px}}
+
+/* v5.3 — compact admin management */
+.admin-quick-add{border:1px solid var(--line);border-radius:14px;background:#10251e;padding:14px;margin:14px 0 16px}
+.quick-add-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.quick-add-heading h2{font-size:17px;margin:0}.quick-add-heading span{font-size:12px;color:var(--muted)}
+.admin-quick-add .admin-forms{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0}
+.admin-quick-add .card{padding:12px!important;background:#19352b;border-radius:10px;min-width:0}
+.admin-quick-add .card h2{font-size:14px;margin:0 0 8px}
+.admin-quick-add form{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.admin-quick-add form input{flex:1 1 125px;width:0;min-width:110px;min-height:38px;padding:8px 10px}
+.admin-quick-add form button{min-height:38px;padding:8px 12px;white-space:normal;font-size:12px}
+.compact-management{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
+.compact-management>.card{padding:14px!important;min-width:0}
+.compact-management .card h2{font-size:17px;margin:0 0 12px}
+.compact-management .card h2 small{font-size:12px;color:var(--muted)}
+.compact-management .compact-entity-row{display:flex;align-items:center;gap:6px;padding:8px 0;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.compact-management .compact-entity-row:last-child{border-bottom:0}
+.compact-management .compact-entity-row>strong,.compact-management .compact-entity-row>button:first-child{margin-right:auto}
+.compact-management .compact-entity-row button{min-height:32px!important;padding:6px 9px;font-size:12px;white-space:nowrap}
+.compact-management .compact-entity-row small{color:var(--muted);font-size:11px}
+.compact-management .pill{font-size:10px;padding:3px 7px}
+.players-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+.players-heading h2{margin:0!important}.players-heading input{width:min(100%,220px);min-height:36px;padding:7px 10px}
+.players-management .entity-list{max-height:310px;overflow-y:auto;scrollbar-width:thin}
+.players-management .entity-row{padding:7px 0;gap:8px;min-height:42px}
+.players-management .entity-row button{min-height:31px;padding:5px 9px;font-size:12px}
+@media(max-width:1000px){.admin-quick-add .admin-forms{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.admin-quick-add .admin-forms,.compact-management{grid-template-columns:1fr}.admin-quick-add{padding:10px}.compact-management>.card{padding:12px!important}.admin-quick-add .card{padding:10px!important}.players-heading input{width:100%}.compact-management .compact-entity-row>strong{flex:1 1 100px!important}.compact-management .compact-entity-row>button:first-child{margin-right:auto}.compact-management .compact-entity-row button{font-size:12px}}
