@@ -1,3 +1,10 @@
-import './globals.css';import Link from 'next/link';
+import './globals.css';
+import Link from 'next/link';
 export const metadata={title:'Kiangan Pickleball',description:'Play! Connect! Stay Active!'};
-export default function Root({children}:{children:React.ReactNode}){return <html lang="en"><body><header><strong>🏓 Kiangan Pickleball</strong><nav><Link href="/">Home</Link><Link href="/open-play">Open Play</Link><Link href="/tournaments">Tournaments</Link><Link href="/display">Court Display</Link></nav></header>{children}</body></html>}
+export default function Root({children}:{children:React.ReactNode}){
+ return <html lang="en"><body>
+  <header className="site-header"><Link href="/" className="site-brand"><span aria-hidden="true">🏓</span><span>Kiangan <strong>Pickleball</strong></span></Link>
+   <nav className="site-nav" aria-label="Main navigation"><Link href="/">Home</Link><Link href="/open-play">Open Play</Link><Link href="/tournaments">Tournaments</Link><Link href="/display">Courts</Link></nav>
+  </header>{children}<footer className="site-footer">Kiangan Pickleball · Play! Connect! Stay Active!</footer>
+ </body></html>
+}
