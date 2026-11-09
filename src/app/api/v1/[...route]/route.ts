@@ -10,6 +10,8 @@ const err=(message:string,status=400)=>ok({error:message},status);
 const oid=(s:string)=>{if(!ObjectId.isValid(s))throw Error('Invalid ID');return new ObjectId(s)};
 const arr=(a:any)=>Array.isArray(a)?a:[];
 const now=()=>new Date();
+const visible={deletedAt:{$exists:false}};
+const conflict=(message:string)=>err(message,409);
 async function transaction<T>(fn:(s:ClientSession)=>Promise<T>){const d=await db();const client=d.client;const s=client.startSession();try{return await s.withTransaction(async()=>fn(s)) as T}finally{await s.endSession()}}
 async function handler(req:NextRequest,{params}:{params:{route:string[]}}){try{
  const path=params.route;const method=req.method;const body=method==='GET'?{}:await req.json().catch(()=>({}));const d=await db();
@@ -53,7 +55,7 @@ async function handler(req:NextRequest,{params}:{params:{route:string[]}}){try{
  }
  if(path[0]==='guest'&&path[1]==='join'&&method==='POST'){
    const sessionId=oid(String(body.sessionId||''));
-   const session=await d.collection('sessions').findOne({_id:sessionId,status:'active'});
+   const session=await d.collection('sessions').findOne({_id:sessionId,status:'active',...visible});
    if(!session)return err('Open Play session not found or closed',404);
    const name=String(body.name||'').trim().replace(/\s+/g,' ');
    if(name.length<2||name.length>70)return err('Name must be 2–70 characters');
@@ -73,19 +75,23 @@ async function handler(req:NextRequest,{params}:{params:{route:string[]}}){try{
  const admin=isAdmin(user);
  const adminOnly=()=>{if(!admin)throw Error('ADMIN_ONLY')};
  if(path[0]==='courts'){
-  if(method==='GET')return ok(await d.collection('courts').find().sort({name:1}).toArray());
+  if(method==='GET')return ok(await d.collection('courts').find(visible).sort({name:1}).toArray());
   adminOnly();if(method==='POST'){const name=String(body.name||'').trim();if(!name)return err('Court name required');await indexes();const r=await d.collection('courts').insertOne({name,enabled:true,createdAt:now()});return ok({id:String(r.insertedId)},201)}
-  if(method==='PATCH'&&path[1]){await d.collection('courts').updateOne({_id:oid(path[1])},{$set:{enabled:!!body.enabled}});return ok({ok:true})}
+  if(method==='PATCH'&&path[1]){const result=await d.collection('courts').updateOne({_id:oid(path[1]),...visible},{$set:{enabled:!!body.enabled}});return result.matchedCount?ok({ok:true}):err('Court not found',404)}
+  if(method==='DELETE'&&path[1]){const courtId=oid(path[1]);if(await d.collection('matches').findOne({courtId,status:'playing'}))return conflict('Finish the active match before deleting this court');await d.collection('courts').updateOne({_id:courtId,...visible},{$set:{enabled:false,deletedAt:now()}});return ok({ok:true})}
  }
  if(path[0]==='players'){
-  if(method==='GET')return ok(await d.collection('players').find().project({name:1,rating:1}).sort({name:1}).limit(500).toArray());
+  if(method==='GET')return ok(await d.collection('players').find(visible).project({name:1,rating:1}).sort({name:1}).limit(500).toArray());
   adminOnly();if(method==='POST'){const name=String(body.name||'').trim();if(name.length<2)return err('Name required');const r=await d.collection('players').insertOne({name,rating:Number(body.rating)||3,createdAt:now()});return ok({id:String(r.insertedId)},201)}
+  if(method==='DELETE'&&path[1]){const playerId=oid(path[1]);if(await d.collection('queue').findOne({playerId,active:true,status:{$in:['waiting','playing','resting']}}))return conflict('Remove this player from active queues before deleting');const activeMatches=await d.collection('matches').find({status:'playing',context:'open'}).project({teams:1}).toArray();if(activeMatches.some(m=>arr(m.teams).flat().some((x:any)=>String(x)===String(playerId))))return conflict('Player is in an active match');await d.collection('players').updateOne({_id:playerId,...visible},{$set:{deletedAt:now()}});return ok({ok:true})}
  }
  if(path[0]==='sessions'){
-  if(method==='GET'&&path.length===1)return ok(await d.collection('sessions').find().sort({createdAt:-1}).limit(100).toArray());
+  if(method==='GET'&&path.length===1)return ok(await d.collection('sessions').find(visible).sort({createdAt:-1}).limit(100).toArray());
   if(method==='POST'&&path.length===1){adminOnly();const courtIds=arr(body.courtIds).map((x:string)=>oid(x));if(!courtIds.length)return err('Select at least one court');const r=await d.collection('sessions').insertOne({name:String(body.name||'Open Play'),courtIds,queuePolicy:body.queuePolicy||'fifo',teamPolicy:body.teamPolicy||'random',status:'active',target:11,winBy:2,createdAt:now()});return ok({id:String(r.insertedId)},201)}
-  if(!path[1])return err('Session ID required');const sessionId=oid(path[1]);const session=await d.collection('sessions').findOne({_id:sessionId});if(!session)return err('Session not found',404);
+  if(!path[1])return err('Session ID required');const sessionId=oid(path[1]);const session=await d.collection('sessions').findOne({_id:sessionId,...visible});if(!session)return err('Session not found',404);
   if(method==='GET'&&path.length===2){const [queue,matches]=await Promise.all([d.collection('queue').find({sessionId,active:true}).sort({joinedAt:1}).toArray(),d.collection('matches').find({sessionId}).sort({createdAt:-1}).limit(100).toArray()]);return ok({session,queue,matches})}
+  if(path.length===2&&method==='PATCH'){adminOnly();if(!['active','disabled'].includes(body.status))return err('Invalid session status');if(body.status==='active'&&session.status==='completed')return conflict('Completed sessions cannot be reopened');await d.collection('sessions').updateOne({_id:sessionId},{$set:{status:body.status}});return ok({ok:true})}
+  if(path.length===2&&method==='DELETE'){adminOnly();if(await d.collection('matches').findOne({sessionId,status:'playing'}))return conflict('Complete active matches before deleting the session');await d.collection('sessions').updateOne({_id:sessionId},{$set:{status:'disabled',deletedAt:now()}});await d.collection('queue').updateMany({sessionId,active:true},{$set:{active:false,status:'left'}});return ok({ok:true})}
   if(path[2]==='settings'&&method==='PATCH'){adminOnly();const policy=['fifo','four','winner'].includes(body.queuePolicy)?body.queuePolicy:session.queuePolicy;const team=['random','balanced','fixed'].includes(body.teamPolicy)?body.teamPolicy:session.teamPolicy;await d.collection('sessions').updateOne({_id:sessionId},{$set:{queuePolicy:policy,teamPolicy:team}});return ok({ok:true})}
   if(path[2]==='join'&&method==='POST'){adminOnly();
    const playerId=body.playerId?oid(body.playerId):user? (await d.collection('players').findOne({userId:oid(user.id)}))?._id:null;
@@ -100,7 +106,7 @@ async function handler(req:NextRequest,{params}:{params:{route:string[]}}){try{
   if(path[2]==='rest'&&method==='POST'){adminOnly();const playerId=(await d.collection('players').findOne({userId:oid(user!.id)}))?._id;if(!playerId)return err('Player not found');await d.collection('queue').updateOne({sessionId,playerId,status:'waiting'},{$set:{status:'resting'}});return ok({ok:true})}
   if(path[2]==='return'&&method==='POST'){adminOnly();const playerId=(await d.collection('players').findOne({userId:oid(user!.id)}))?._id;if(!playerId)return err('Player not found');await d.collection('queue').updateOne({sessionId,playerId,status:'resting'},{$set:{status:'waiting',joinedAt:now()}});return ok({ok:true})}
   if(path[2]==='assign'&&method==='POST'){
-   adminOnly();const courtId=oid(body.courtId);if(!session.courtIds.some((x:ObjectId)=>x.equals(courtId)))return err('Court not in session');
+   adminOnly();if(session.status!=='active')return conflict('Enable this Open Play session before assigning matches');const courtId=oid(body.courtId);if(!session.courtIds.some((x:ObjectId)=>x.equals(courtId)))return err('Court not in session');
    return ok(await transaction(async tx=>{
     const busy=await d.collection('matches').findOne({courtId,status:'playing'},{session:tx});if(busy)throw Error('Court is busy');
     const waiting=await d.collection('queue').find({sessionId,active:true,status:'waiting'},{session:tx}).sort({joinedAt:1}).limit(100).toArray();if(waiting.length<4)throw Error('Need four waiting players');
@@ -131,10 +137,11 @@ async function handler(req:NextRequest,{params}:{params:{route:string[]}}){try{
   }
  }
  if(path[0]==='tournaments'){
-  if(method==='GET'&&path.length===1)return ok(await d.collection('tournaments').find().sort({createdAt:-1}).toArray());
+  if(method==='GET'&&path.length===1)return ok(await d.collection('tournaments').find(visible).sort({createdAt:-1}).toArray());
   if(method==='POST'&&path.length===1){adminOnly();const format=String(body.format||'round');if(!['round','single','double'].includes(format))return err('Invalid format');const r=await d.collection('tournaments').insertOne({name:String(body.name||'Tournament'),format,status:'registration',target:11,winBy:2,createdAt:now()});return ok({id:String(r.insertedId)},201)}
-  if(!path[1])return err('Tournament ID required');const tournamentId=oid(path[1]);const t=await d.collection('tournaments').findOne({_id:tournamentId});if(!t)return err('Tournament not found',404);
+  if(!path[1])return err('Tournament ID required');const tournamentId=oid(path[1]);const t=await d.collection('tournaments').findOne({_id:tournamentId,...visible});if(!t)return err('Tournament not found',404);
   if(method==='GET'&&path.length===2){const [entries,matches]=await Promise.all([d.collection('entries').find({tournamentId}).toArray(),d.collection('matches').find({tournamentId}).sort({round:1,createdAt:1}).toArray()]);return ok({tournament:t,entries,matches})}
+  if(path.length===2&&method==='DELETE'){adminOnly();if(await d.collection('matches').findOne({tournamentId,status:'playing'}))return conflict('Finish active tournament matches before deleting');await d.collection('tournaments').updateOne({_id:tournamentId},{$set:{status:'cancelled',deletedAt:now()}});return ok({ok:true})}
   if(path[2]==='register'&&method==='POST'){adminOnly();
    if(t.status!=='registration')return err('Registration closed');const playerIds=arr(body.playerIds).map(oid);if(playerIds.length!==2||playerIds[0].equals(playerIds[1]))return err('Two distinct players required');
    if(!admin){const mine=await d.collection('players').findOne({userId:oid(user!.id)});if(!mine||!playerIds.some((x:ObjectId)=>x.equals(mine._id)))return err('You must be on the team',403)}
@@ -174,4 +181,4 @@ async function applyTournamentResult(d:any,match:any,winner:number,tx:ClientSess
   const next=nextDoubleRound(state);await d.collection('tournaments').updateOne({_id:t._id},{$set:{bracket:state,round:state.round+1}},{session:tx});if(next.length)await d.collection('matches').insertMany(next.map((x:any,i:number)=>({context:'tournament',tournamentId:t._id,teams:[oid(x.a),oid(x.b)],round:match.round+1,position:i,status:'pending',target:11,winBy:2,createdAt:now()})),{session:tx});
  }
 }
-export const GET=handler;export const POST=handler;export const PATCH=handler;
+export const GET=handler;export const POST=handler;export const PATCH=handler;export const DELETE=handler;

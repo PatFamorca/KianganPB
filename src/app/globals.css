@@ -1,1 +1,29 @@
 :root{color-scheme:dark;--bg:#0b1716;--panel:#142724;--line:#315149;--text:#edf8f2;--muted:#a4bcb1;--accent:#b6f45b}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}a{color:var(--accent);text-decoration:none}header{display:flex;align-items:center;justify-content:space-between;padding:18px 5%;border-bottom:1px solid var(--line)}main{max-width:1200px;margin:auto;padding:28px 18px}nav{display:flex;gap:16px;flex-wrap:wrap}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}.card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:20px;margin:12px 0}.card h2{margin-top:0}input,select,button{font:inherit;padding:11px;border-radius:9px;border:1px solid var(--line);background:#0d1c1a;color:var(--text);max-width:100%}button{cursor:pointer;background:var(--accent);color:#142010;font-weight:700;border:0}button.secondary{background:#2d4c40;color:white}button:disabled{opacity:.45;cursor:not-allowed}form{display:flex;gap:10px;flex-wrap:wrap;align-items:center}label{display:grid;gap:6px;font-size:14px}h1{font-size:clamp(27px,4vw,42px)}p,small{color:var(--muted)}table{width:100%;border-collapse:collapse}td,th{padding:11px;text-align:left;border-bottom:1px solid var(--line)}.pill{display:inline-block;padding:4px 9px;background:#355844;border-radius:30px;font-size:12px}.error{color:#ffadad}.success{color:var(--accent)}.stack{display:grid;gap:12px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.wide{width:100%}@media(max-width:650px){header{display:block}nav{margin-top:12px}table{font-size:12px}td,th{padding:7px}}
+
+/* Kiangan Pickleball admin dashboard v3 */
+.admin-page{max-width:1500px;padding:32px clamp(16px,3vw,44px) 80px}
+.admin-page h1{margin:0 0 18px;letter-spacing:-.035em}
+.admin-grid{display:grid;gap:20px;align-items:stretch;margin:24px 0}
+.admin-forms{grid-template-columns:repeat(2,minmax(0,1fr))}
+.admin-lists{grid-template-columns:repeat(2,minmax(0,1fr))}
+.admin-grid>.card{margin:0;min-width:0}
+.admin-page .card{padding:clamp(18px,2vw,28px);border-radius:18px}
+.admin-page .card h2{font-size:clamp(19px,2vw,23px);margin:0 0 20px}
+.admin-forms form{display:grid;grid-template-columns:1fr;align-items:stretch;gap:12px}
+.admin-forms form input,.admin-forms form select{width:100%;min-width:0}
+.admin-forms form button{justify-self:start;max-width:100%;white-space:normal}
+.admin-page .row{gap:10px;padding:10px 0;min-width:0}
+.admin-lists .row{border-bottom:1px solid var(--line)}
+.admin-lists .row:last-child{border-bottom:0}
+.admin-lists .row>strong,.admin-lists .row>button:first-child{margin-right:auto;min-width:0;overflow-wrap:anywhere}
+.admin-page .row input[type=number]{width:110px}
+.admin-page button{transition:filter .15s ease,transform .15s ease}
+.admin-page button:hover:not(:disabled){filter:brightness(1.08)}
+button.danger{background:#552c31;color:#ffe1e1;border:1px solid #97545c}
+button.danger:hover:not(:disabled){background:#74343b}
+.entity-list{max-height:360px;overflow-y:auto;padding-right:4px}
+.entity-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid var(--line)}
+.entity-row strong{overflow-wrap:anywhere}
+.admin-page .card>.card{margin:12px 0;background:#10221f}
+@media(max-width:900px){.admin-forms,.admin-lists{grid-template-columns:1fr}}
+@media(max-width:600px){.admin-page{padding:20px 12px 60px}.admin-page .card{padding:16px}.admin-page .row{align-items:stretch}.admin-page .row>label{width:100%}.admin-page .row>label select{width:100%}.admin-page .row button{flex-shrink:0}}
