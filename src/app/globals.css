@@ -156,3 +156,23 @@ h2{line-height:1.25}
 .players-management .entity-row button{min-height:31px;padding:5px 9px;font-size:12px}
 @media(max-width:1000px){.admin-quick-add .admin-forms{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.admin-quick-add .admin-forms,.compact-management{grid-template-columns:1fr}.admin-quick-add{padding:10px}.compact-management>.card{padding:12px!important}.admin-quick-add .card{padding:10px!important}.players-heading input{width:100%}.compact-management .compact-entity-row>strong{flex:1 1 100px!important}.compact-management .compact-entity-row>button:first-child{margin-right:auto}.compact-management .compact-entity-row button{font-size:12px}}
+
+/* v6 player management and display */
+.player-edit-card form{display:flex;flex-wrap:wrap;align-items:end;gap:12px}.player-edit-card label{display:grid;gap:5px;flex:1 1 170px}.player-edit-card input,.player-edit-card select{width:100%}
+.admin-tabs{display:flex;flex-wrap:wrap;gap:8px}.players-management{grid-column:1/-1}.players-management .entity-list{max-height:540px}.players-management .entity-row{display:flex;align-items:center;gap:10px}.players-management .entity-row strong{flex:1}
+@media(max-width:700px){.player-edit-card form{display:grid}.admin-tabs button{flex:1 1 auto}}
+
+/* v6.1 — poster-led, mobile-first home */
+.home-page{max-width:1100px;padding:24px 16px 64px}
+.home-intro{text-align:center;margin:8px auto 24px;max-width:720px}
+.home-eyebrow{display:inline-block;color:var(--accent);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.home-intro h1{font-size:clamp(28px,5vw,48px);margin:10px 0}
+.home-intro p{font-size:clamp(14px,2vw,17px);line-height:1.6;margin:0}
+.home-poster-section{display:flex;justify-content:center}
+.home-poster{display:block;width:100%;max-width:800px;height:auto;border-radius:14px;box-shadow:0 18px 55px #0005}
+.home-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;max-width:950px;margin:28px auto 0}
+.home-action-card{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:20px;border:1px solid var(--line);border-radius:16px;background:var(--panel)}
+.home-action-card h2{font-size:19px;margin:0}.home-action-card p{line-height:1.5;margin:0 0 8px;flex:1}
+.home-action-icon{font-size:26px}.home-action-link{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:11px 16px;border-radius:10px;background:var(--accent);color:#142010;font-weight:800;text-align:center}
+.home-action-link:hover{filter:brightness(1.08)}
+@media(max-width:700px){.home-page{padding:14px 10px 48px}.home-intro{margin:12px auto 18px;padding:0 6px}.home-poster{border-radius:9px}.home-actions{grid-template-columns:1fr;gap:10px;margin-top:18px}.home-action-card{padding:16px}.home-action-link{width:100%}}

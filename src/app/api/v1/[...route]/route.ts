@@ -63,13 +63,27 @@ async function handler(req:NextRequest,{params}:{params:{route:string[]}}){try{
    const skillLevel=['beginner','intermediate','advanced'].includes(body.skillLevel)?body.skillLevel:'beginner';
    const playStyle=['chill','challenge'].includes(body.playStyle)?body.playStyle:'chill';
    const normalizedName=name.toLocaleLowerCase('en');
+   // Resolve existing guest names before creating a player. A confirmation is required
+   // before changing saved preferences; it never silently overwrites them.
+   const existing=await d.collection('players').findOne({nameKey:normalizedName,...visible}) ||
+     await d.collection('players').findOne({name, ...visible},{collation:{locale:'en',strength:2}});
+   if(existing){
+     const previousSkill=existing.skillLevel||'beginner',previousStyle=existing.playStyle||'chill';
+     const changed=previousSkill!==skillLevel||previousStyle!==playStyle;
+     if(changed&&body.confirmPreferenceUpdate!==true)return ok({requiresConfirmation:true,existingSkillLevel:previousSkill,existingPlayStyle:previousStyle,playerName:existing.name},409);
+     if(await d.collection('queue').findOne({sessionId,playerId:existing._id,active:true}))return conflict('This player is already in this session queue');
+     await d.collection('guestClaims').updateOne({sessionId,normalizedName},{$setOnInsert:{createdAt:now()}},{upsert:true});
+     if(changed)await d.collection('players').updateOne({_id:existing._id},{$set:{skillLevel,playStyle,rating:({beginner:1,intermediate:3,advanced:5} as Record<string,number>)[skillLevel]}});
+     await d.collection('queue').insertOne({sessionId,playerId:existing._id,active:true,status:'waiting',joinedAt:now(),gamesPlayed:0,skillLevel,playStyle});
+     return ok({ok:true,playerId:String(existing._id),reused:true},201);
+   }
    await d.collection('guestClaims').createIndex({sessionId:1,normalizedName:1},{unique:true});
    try{await d.collection('guestClaims').insertOne({sessionId,normalizedName,createdAt:now()})}
-   catch(e:any){if(e.code===11000)return err('This name is already registered for the session. Ask the organizer for help.',409);throw e}
+   catch(e:any){if(e.code===11000)return conflict('This player name is already registered for the session');throw e}
    try{
-     const player=await d.collection('players').insertOne({name,rating:({beginner:1,intermediate:3,advanced:5} as Record<string,number>)[skillLevel],skillLevel,playStyle,guest:true,createdAt:now()});
+     const player=await d.collection('players').insertOne({name,nameKey:normalizedName,rating:({beginner:1,intermediate:3,advanced:5} as Record<string,number>)[skillLevel],skillLevel,playStyle,guest:true,createdAt:now()});
      await d.collection('queue').insertOne({sessionId,playerId:player.insertedId,active:true,status:'waiting',joinedAt:now(),gamesPlayed:0,skillLevel,playStyle});
-     return ok({ok:true,playerId:String(player.insertedId),message:'You are in the Open Play queue'},201);
+     return ok({ok:true,playerId:String(player.insertedId)},201);
    }catch(e){await d.collection('guestClaims').deleteOne({sessionId,normalizedName});throw e}
  }
  const user=await identity();
@@ -86,6 +100,19 @@ async function handler(req:NextRequest,{params}:{params:{route:string[]}}){try{
  if(path[0]==='players'){
   if(method==='GET')return ok(await d.collection('players').find(visible).project({name:1,rating:1,skillLevel:1,playStyle:1}).sort({name:1}).limit(500).toArray());
   adminOnly();if(method==='POST'){const name=String(body.name||'').trim();if(name.length<2)return err('Name required');const r=await d.collection('players').insertOne({name,rating:Number(body.rating)||3,createdAt:now()});return ok({id:String(r.insertedId)},201)}
+  if(method==='PATCH'&&path[1]){
+   const playerId=oid(path[1]);const name=String(body.name||'').trim().replace(/\s+/g,' ');
+   if(name.length<2||name.length>70)return err('Name must be 2–70 characters');
+   const skillLevel=String(body.skillLevel||'beginner'),playStyle=String(body.playStyle||'chill');
+   if(!['beginner','intermediate','advanced'].includes(skillLevel)||!['chill','challenge'].includes(playStyle))return err('Invalid preferences');
+   const duplicate=await d.collection('players').findOne({_id:{$ne:playerId},nameKey:name.toLocaleLowerCase('en'),...visible});
+   if(duplicate)return conflict('A player with that name already exists');
+   const player=await d.collection('players').findOne({_id:playerId,...visible});if(!player)return err('Player not found',404);
+   await d.collection('players').updateOne({_id:playerId},{$set:{name,nameKey:name.toLocaleLowerCase('en'),skillLevel,playStyle,rating:({beginner:1,intermediate:3,advanced:5} as Record<string,number>)[skillLevel]}});
+   await d.collection('queue').updateMany({playerId,active:true,status:{$in:['waiting','resting']}},{$set:{skillLevel,playStyle}});
+   await d.collection('guestClaims').updateMany({normalizedName:String(player.name).trim().toLocaleLowerCase('en')},{$set:{normalizedName:name.toLocaleLowerCase('en')}});
+   return ok({ok:true});
+  }
   if(method==='DELETE'&&path[1]){
    const playerId=oid(path[1]);
    const player=await d.collection('players').findOne({_id:playerId,...visible});
@@ -106,7 +133,7 @@ async function handler(req:NextRequest,{params}:{params:{route:string[]}}){try{
   if(method==='GET'&&path.length===1)return ok(await d.collection('sessions').find(visible).sort({createdAt:-1}).limit(100).toArray());
   if(method==='POST'&&path.length===1){adminOnly();const courtIds=arr(body.courtIds).map((x:string)=>oid(x));if(!courtIds.length)return err('Select at least one court');const r=await d.collection('sessions').insertOne({name:String(body.name||'Open Play'),courtIds,queuePolicy:body.queuePolicy||'fifo',teamPolicy:body.teamPolicy||'random',status:'active',weeklyResetEnabled:true,target:11,winBy:2,createdAt:now()});return ok({id:String(r.insertedId)},201)}
   if(!path[1])return err('Session ID required');const sessionId=oid(path[1]);const session=await d.collection('sessions').findOne({_id:sessionId,...visible});if(!session)return err('Session not found',404);
-  if(method==='GET'&&path.length===2){const [queue,matches]=await Promise.all([d.collection('queue').find({sessionId,active:true}).sort({joinedAt:1}).toArray(),d.collection('matches').find({sessionId,archivedAt:{$exists:false}}).sort({createdAt:-1}).limit(100).toArray()]);const historical=await d.collection('matches').find({sessionId,context:'open',status:'completed'}).project({teams:1,winner:1}).toArray();
+  if(method==='GET'&&path.length===2){const [queue,matches]=await Promise.all([d.collection('queue').find({sessionId,active:true}).sort({joinedAt:1}).toArray(),d.collection('matches').find({sessionId,archivedAt:{$exists:false}}).sort({createdAt:-1}).limit(100).toArray()]);const historical=await d.collection('matches').find({sessionId,context:'open',status:'completed',archivedAt:{$exists:false}}).project({teams:1,winner:1}).toArray();
    const stats=new Map<string,{playerId:string;wins:number;games:number}>();
    for(const m of historical){if(!Array.isArray(m.teams))continue;for(let side=0;side<2;side++){for(const pid of (m.teams[side]||[])){const key=String(pid);const row=stats.get(key)||{playerId:key,wins:0,games:0};row.games++;if(m.winner===side)row.wins++;stats.set(key,row)}}}
    const leaderboard=[...stats.values()].sort((a,b)=>b.wins-a.wins||b.wins/Math.max(1,b.games)-a.wins/Math.max(1,a.games)||a.playerId.localeCompare(b.playerId));
@@ -122,7 +149,7 @@ async function handler(req:NextRequest,{params}:{params:{route:string[]}}){try{
     await d.collection('matches').updateMany({sessionId,archivedAt:{$exists:false}},{$set:{archivedAt:resetAt}},{session:tx});
     await d.collection('guestClaims').deleteMany({sessionId},{session:tx});
     await d.collection('sessions').updateOne({_id:sessionId},{$set:{lastResetAt:resetAt},$inc:{resetCount:1}},{session:tx});
-    return {ok:true,message:'Session cleared. Existing player profiles and match history are retained.'};
+    return {ok:true,message:'Session cleared. Queue, wins, and game statistics have been reset; historical matches remain archived.'};
    }));
   }
   if(path[2]==='settings'&&method==='PATCH'){adminOnly();const policy=['fifo','four','winner'].includes(body.queuePolicy)?body.queuePolicy:session.queuePolicy;const team=['random','balanced','fixed'].includes(body.teamPolicy)?body.teamPolicy:session.teamPolicy;await d.collection('sessions').updateOne({_id:sessionId},{$set:{queuePolicy:policy,teamPolicy:team}});return ok({ok:true})}
