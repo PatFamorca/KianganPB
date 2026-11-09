@@ -1,7 +1,8 @@
 import {NextRequest,NextResponse} from 'next/server';
 import {ObjectId,ClientSession} from 'mongodb';
 import bcrypt from 'bcryptjs';
-import {db,indexes} from '@/lib/db';
+import {db,indexes,mongoClient} from '@/lib/db';
+import {selectFifoGroup} from '@/lib/queue-policy';
 import {identity,isAdmin,setLogin} from '@/lib/auth';
 import {roundRobin,singleElimination,doubleElimination,nextDoubleRound,teamsForFour,scoreValid} from '@/lib/engine.mjs';
 export const runtime='nodejs';export const dynamic='force-dynamic';
@@ -12,7 +13,7 @@ const arr=(a:any)=>Array.isArray(a)?a:[];
 const now=()=>new Date();
 const visible={deletedAt:{$exists:false}};
 const conflict=(message:string)=>err(message,409);
-async function transaction<T>(fn:(s:ClientSession)=>Promise<T>){const d=await db();const client=d.client;const s=client.startSession();try{return await s.withTransaction(async()=>fn(s)) as T}finally{await s.endSession()}}
+async function transaction<T>(fn:(s:ClientSession)=>Promise<T>){const d=await db();const client=await mongoClient();const s=client.startSession();try{return await s.withTransaction(async()=>fn(s)) as T}finally{await s.endSession()}}
 async function handler(req:NextRequest,{params}:{params:{route:string[]}}){try{
  const path=params.route;const method=req.method;const body=method==='GET'?{}:await req.json().catch(()=>({}));const d=await db();
  if(path.join('/')==='health')return ok({ok:true});
@@ -59,13 +60,15 @@ async function handler(req:NextRequest,{params}:{params:{route:string[]}}){try{
    if(!session)return err('Open Play session not found or closed',404);
    const name=String(body.name||'').trim().replace(/\s+/g,' ');
    if(name.length<2||name.length>70)return err('Name must be 2–70 characters');
+   const skillLevel=['beginner','intermediate','advanced'].includes(body.skillLevel)?body.skillLevel:'beginner';
+   const playStyle=['chill','challenge'].includes(body.playStyle)?body.playStyle:'chill';
    const normalizedName=name.toLocaleLowerCase('en');
    await d.collection('guestClaims').createIndex({sessionId:1,normalizedName:1},{unique:true});
    try{await d.collection('guestClaims').insertOne({sessionId,normalizedName,createdAt:now()})}
    catch(e:any){if(e.code===11000)return err('This name is already registered for the session. Ask the organizer for help.',409);throw e}
    try{
-     const player=await d.collection('players').insertOne({name,rating:3,guest:true,createdAt:now()});
-     await d.collection('queue').insertOne({sessionId,playerId:player.insertedId,active:true,status:'waiting',joinedAt:now(),gamesPlayed:0});
+     const player=await d.collection('players').insertOne({name,rating:({beginner:1,intermediate:3,advanced:5} as Record<string,number>)[skillLevel],skillLevel,playStyle,guest:true,createdAt:now()});
+     await d.collection('queue').insertOne({sessionId,playerId:player.insertedId,active:true,status:'waiting',joinedAt:now(),gamesPlayed:0,skillLevel,playStyle});
      return ok({ok:true,playerId:String(player.insertedId),message:'You are in the Open Play queue'},201);
    }catch(e){await d.collection('guestClaims').deleteOne({sessionId,normalizedName});throw e}
  }
@@ -81,7 +84,7 @@ async function handler(req:NextRequest,{params}:{params:{route:string[]}}){try{
   if(method==='DELETE'&&path[1]){const courtId=oid(path[1]);if(await d.collection('matches').findOne({courtId,status:'playing'}))return conflict('Finish the active match before deleting this court');await d.collection('courts').updateOne({_id:courtId,...visible},{$set:{enabled:false,deletedAt:now()}});return ok({ok:true})}
  }
  if(path[0]==='players'){
-  if(method==='GET')return ok(await d.collection('players').find(visible).project({name:1,rating:1}).sort({name:1}).limit(500).toArray());
+  if(method==='GET')return ok(await d.collection('players').find(visible).project({name:1,rating:1,skillLevel:1,playStyle:1}).sort({name:1}).limit(500).toArray());
   adminOnly();if(method==='POST'){const name=String(body.name||'').trim();if(name.length<2)return err('Name required');const r=await d.collection('players').insertOne({name,rating:Number(body.rating)||3,createdAt:now()});return ok({id:String(r.insertedId)},201)}
   if(method==='DELETE'&&path[1]){
    const playerId=oid(path[1]);
@@ -101,9 +104,9 @@ async function handler(req:NextRequest,{params}:{params:{route:string[]}}){try{
  }
  if(path[0]==='sessions'){
   if(method==='GET'&&path.length===1)return ok(await d.collection('sessions').find(visible).sort({createdAt:-1}).limit(100).toArray());
-  if(method==='POST'&&path.length===1){adminOnly();const courtIds=arr(body.courtIds).map((x:string)=>oid(x));if(!courtIds.length)return err('Select at least one court');const r=await d.collection('sessions').insertOne({name:String(body.name||'Open Play'),courtIds,queuePolicy:body.queuePolicy||'fifo',teamPolicy:body.teamPolicy||'random',status:'active',target:11,winBy:2,createdAt:now()});return ok({id:String(r.insertedId)},201)}
+  if(method==='POST'&&path.length===1){adminOnly();const courtIds=arr(body.courtIds).map((x:string)=>oid(x));if(!courtIds.length)return err('Select at least one court');const r=await d.collection('sessions').insertOne({name:String(body.name||'Open Play'),courtIds,queuePolicy:body.queuePolicy||'fifo',teamPolicy:body.teamPolicy||'random',status:'active',weeklyResetEnabled:true,target:11,winBy:2,createdAt:now()});return ok({id:String(r.insertedId)},201)}
   if(!path[1])return err('Session ID required');const sessionId=oid(path[1]);const session=await d.collection('sessions').findOne({_id:sessionId,...visible});if(!session)return err('Session not found',404);
-  if(method==='GET'&&path.length===2){const [queue,matches]=await Promise.all([d.collection('queue').find({sessionId,active:true}).sort({joinedAt:1}).toArray(),d.collection('matches').find({sessionId,archivedAt:{$exists:false}}).sort({createdAt:-1}).limit(100).toArray()]);return ok({session,queue,matches})}
+  if(method==='GET'&&path.length===2){const [queue,matches]=await Promise.all([d.collection('queue').find({sessionId,active:true}).sort({joinedAt:1}).toArray(),d.collection('matches').find({sessionId,archivedAt:{$exists:false}}).sort({createdAt:-1}).limit(100).toArray()]);const playerIds=queue.map(q=>q.playerId);const playerNames=await d.collection('players').find({_id:{$in:playerIds}}).project({name:1,skillLevel:1,playStyle:1}).toArray();return ok({session,queue,matches,playerNames})}
   if(path.length===2&&method==='PATCH'){adminOnly();if(!['active','disabled'].includes(body.status))return err('Invalid session status');if(body.status==='active'&&session.status==='completed')return conflict('Completed sessions cannot be reopened');await d.collection('sessions').updateOne({_id:sessionId},{$set:{status:body.status}});return ok({ok:true})}
   if(path.length===2&&method==='DELETE'){adminOnly();if(await d.collection('matches').findOne({sessionId,status:'playing'}))return conflict('Complete active matches before deleting the session');await d.collection('sessions').updateOne({_id:sessionId},{$set:{status:'disabled',deletedAt:now()}});await d.collection('queue').updateMany({sessionId,active:true},{$set:{active:false,status:'left'}});return ok({ok:true})}
   if(path[2]==='reset'&&method==='POST'){
@@ -123,7 +126,7 @@ async function handler(req:NextRequest,{params}:{params:{route:string[]}}){try{
    const playerId=body.playerId?oid(body.playerId):user? (await d.collection('players').findOne({userId:oid(user.id)}))?._id:null;
    if(!playerId)return err('Player not found');if(!admin&&String((await d.collection('players').findOne({_id:playerId}))?.userId)!==user?.id)return err('Not your player',403);
    if(session.status!=='active')return err('Session not active');
-   try{await d.collection('queue').insertOne({sessionId,playerId,active:true,status:'waiting',joinedAt:now(),gamesPlayed:0});return ok({ok:true},201)}catch(e:any){if(e.code===11000)return err('Already in queue',409);throw e}
+   try{await d.collection('queue').insertOne({sessionId,playerId,active:true,status:'waiting',joinedAt:now(),gamesPlayed:0,skillLevel:['beginner','intermediate','advanced'].includes(body.skillLevel)?body.skillLevel:'beginner',playStyle:['chill','challenge'].includes(body.playStyle)?body.playStyle:'chill'});return ok({ok:true},201)}catch(e:any){if(e.code===11000)return err('Already in queue',409);throw e}
   }
   if(path[2]==='leave'&&method==='POST'){adminOnly();
    const playerId=admin&&body.playerId?oid(body.playerId):(await d.collection('players').findOne({userId:oid(user!.id)}))?._id;
@@ -136,7 +139,7 @@ async function handler(req:NextRequest,{params}:{params:{route:string[]}}){try{
    return ok(await transaction(async tx=>{
     const busy=await d.collection('matches').findOne({courtId,status:'playing'},{session:tx});if(busy)throw Error('Court is busy');
     const waiting=await d.collection('queue').find({sessionId,active:true,status:'waiting'},{session:tx}).sort({joinedAt:1}).limit(100).toArray();if(waiting.length<4)throw Error('Need four waiting players');
-    const chosen=waiting.slice(0,4);const players=await d.collection('players').find({_id:{$in:chosen.map(x=>x.playerId)}},{session:tx}).toArray();const byId=new Map(players.map(x=>[String(x._id),x]));const ordered=chosen.map(x=>byId.get(String(x.playerId))!);
+    const chosen=session.queuePolicy==='fifo'?selectFifoGroup(waiting):waiting.slice(0,4);const players=await d.collection('players').find({_id:{$in:chosen.map(x=>x.playerId)}},{session:tx}).toArray();const byId=new Map(players.map(x=>[String(x._id),x]));const ordered=chosen.map(x=>({...byId.get(String(x.playerId))!,rating:({beginner:1,intermediate:3,advanced:5} as Record<string,number>)[x.skillLevel]||byId.get(String(x.playerId))?.rating||3}));
     const teams=teamsForFour(ordered,session.teamPolicy==='balanced'?'balanced':session.teamPolicy==='random'?'random':'fixed');
     const r=await d.collection('matches').insertOne({context:'open',sessionId,courtId,teams:teams.map(x=>x.map(oid)),status:'playing',createdAt:now(),startedAt:now(),target:11,winBy:2},{session:tx});
     const upd=await d.collection('queue').updateMany({_id:{$in:chosen.map(x=>x._id)},status:'waiting'},{$set:{status:'playing',matchId:r.insertedId}},{session:tx});if(upd.modifiedCount!==4)throw Error('Queue changed, retry');return {matchId:String(r.insertedId),teams};

@@ -27,3 +27,17 @@ button.danger:hover:not(:disabled){background:#74343b}
 .admin-page .card>.card{margin:12px 0;background:#10221f}
 @media(max-width:900px){.admin-forms,.admin-lists{grid-template-columns:1fr}}
 @media(max-width:600px){.admin-page{padding:20px 12px 60px}.admin-page .card{padding:16px}.admin-page .row{align-items:stretch}.admin-page .row>label{width:100%}.admin-page .row>label select{width:100%}.admin-page .row button{flex-shrink:0}}
+
+/* Open Play live court visualization and pool */
+.court-board{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin:18px 0 24px}
+.court-tile{background:#0c211c;border:1px solid var(--line);border-radius:18px;padding:16px}
+.court-tile-header{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px}
+.court-surface{border:3px solid #b4e3cb;border-radius:8px;background:#246c53;min-height:200px;display:flex;flex-direction:column;padding:12px;position:relative;box-shadow:inset 0 0 0 7px #246c53,inset 0 0 0 9px #9fddc3}
+.court-side{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:700;color:white;padding:14px;overflow-wrap:anywhere}
+.court-net{text-align:center;border-top:3px dashed #f6fff5;font-size:10px;letter-spacing:.3em;padding-top:4px;color:#fff}
+.court-empty{margin:auto;text-align:center;color:#e0f2e9}
+.player-pool{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin:16px 0}
+.pool-player{display:grid;gap:5px;background:#1b3931;border:1px solid #406c5d;border-radius:12px;padding:13px}
+.pool-player small{text-transform:capitalize}
+.guest-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;align-items:end}
+.guest-form label input,.guest-form label select{width:100%}

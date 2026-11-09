@@ -15,3 +15,5 @@ export async function indexes(){const d=await db(); await Promise.all([
  d.collection('entries').createIndex({divisionId:1,playerIds:1}),
  d.collection('courts').createIndex({name:1},{unique:true}),
  ]);}
+
+export async function mongoClient():Promise<MongoClient>{await db();return await globalCache._mongoClient!;}
