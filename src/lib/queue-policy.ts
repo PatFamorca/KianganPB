@@ -1,6 +1,7 @@
 // FIFO with compatibility: oldest player is always included, then seek compatible players.
 // Never skip the oldest player; if there are fewer than 4 compatible players, fill by arrival.
-export type QueueEntry={joinedAt:Date|string;skillLevel?:string;playStyle?:string};
+import type { ObjectId } from 'mongodb';
+export type QueueEntry={playerId:ObjectId;joinedAt:Date|string;skillLevel?:string;playStyle?:string};
 export function selectFifoGroup<T extends QueueEntry>(waiting:T[]):T[]{
  const ordered=[...waiting].sort((a,b)=>new Date(a.joinedAt).getTime()-new Date(b.joinedAt).getTime());
  if(ordered.length<4)return [];
