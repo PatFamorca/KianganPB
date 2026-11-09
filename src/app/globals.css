@@ -104,3 +104,17 @@ h2{line-height:1.25}
 }
 @media(max-width:380px){.player-pool{grid-template-columns:1fr}.site-nav a{font-size:11px}.admin-page .row button{font-size:14px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+
+/* v5.1 mobile admin organization */
+.admin-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0 22px}
+.admin-tabs button{width:100%;white-space:normal;min-height:50px}
+.admin-tabs .tab-active{background:var(--accent);color:#142010}
+.court-score-panel{padding:12px;margin-bottom:12px;background:#183a2e;border:1px solid #507966;border-radius:12px;display:grid;gap:12px}
+.court-score-panel>strong{font-size:14px;overflow-wrap:anywhere}
+.court-score-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:end}
+.court-score-actions label{min-width:0}
+.court-score-actions input{width:100%;min-width:0}
+.court-score-actions button{grid-column:1/-1;width:100%}
+.footer-admin{display:block;margin-top:12px}
+.footer-admin a{color:var(--muted);text-decoration:underline;text-underline-offset:3px}
+@media(min-width:800px){.admin-tabs{max-width:540px}.court-score-actions{grid-template-columns:90px 90px minmax(0,1fr)}.court-score-actions button{grid-column:auto}}

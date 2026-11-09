@@ -135,9 +135,14 @@ async function handler(req:NextRequest,{params}:{params:{route:string[]}}){try{
   if(path[2]==='rest'&&method==='POST'){adminOnly();const playerId=(await d.collection('players').findOne({userId:oid(user!.id)}))?._id;if(!playerId)return err('Player not found');await d.collection('queue').updateOne({sessionId,playerId,status:'waiting'},{$set:{status:'resting'}});return ok({ok:true})}
   if(path[2]==='return'&&method==='POST'){adminOnly();const playerId=(await d.collection('players').findOne({userId:oid(user!.id)}))?._id;if(!playerId)return err('Player not found');await d.collection('queue').updateOne({sessionId,playerId,status:'resting'},{$set:{status:'waiting',joinedAt:now()}});return ok({ok:true})}
   if(path[2]==='assign'&&method==='POST'){
-   adminOnly();if(session.status!=='active')return conflict('Enable this Open Play session before assigning matches');const courtId=oid(body.courtId);if(!session.courtIds.some((x:ObjectId)=>x.equals(courtId)))return err('Court not in session');
+   adminOnly();if(session.status!=='active')return conflict('Enable this Open Play session before assigning matches');
    return ok(await transaction(async tx=>{
-    const busy=await d.collection('matches').findOne({courtId,status:'playing'},{session:tx});if(busy)throw Error('Court is busy');
+    const eligible=await d.collection('courts').find({_id:{$in:session.courtIds},enabled:true,...visible},{session:tx}).toArray();
+    const occupied=await d.collection('matches').find({courtId:{$in:eligible.map(c=>c._id)},status:'playing'},{session:tx}).project({courtId:1}).toArray();
+    const occupiedIds=new Set(occupied.map(m=>String(m.courtId)));
+    const available=eligible.find(c=>!occupiedIds.has(String(c._id)));
+    if(!available)throw Error('No court available');
+    const courtId=available._id;
     const waiting=await d.collection<QueueEntry>('queue').find({sessionId,active:true,status:'waiting'},{session:tx}).sort({joinedAt:1}).limit(100).toArray();if(waiting.length<4)throw Error('Need four waiting players');
     const chosen=session.queuePolicy==='fifo'?selectFifoGroup(waiting):waiting.slice(0,4);const players=await d.collection('players').find({_id:{$in:chosen.map(x=>x.playerId)}},{session:tx}).toArray();const byId=new Map(players.map(x=>[String(x._id),x]));const ordered=chosen.map(x=>({...byId.get(String(x.playerId))!,rating:({beginner:1,intermediate:3,advanced:5} as Record<string,number>)[x.skillLevel || 'beginner']||byId.get(String(x.playerId))?.rating||3}));
     const teams=teamsForFour(ordered,session.teamPolicy==='balanced'?'balanced':session.teamPolicy==='random'?'random':'fixed');
