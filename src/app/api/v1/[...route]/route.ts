@@ -83,15 +83,41 @@ async function handler(req:NextRequest,{params}:{params:{route:string[]}}){try{
  if(path[0]==='players'){
   if(method==='GET')return ok(await d.collection('players').find(visible).project({name:1,rating:1}).sort({name:1}).limit(500).toArray());
   adminOnly();if(method==='POST'){const name=String(body.name||'').trim();if(name.length<2)return err('Name required');const r=await d.collection('players').insertOne({name,rating:Number(body.rating)||3,createdAt:now()});return ok({id:String(r.insertedId)},201)}
-  if(method==='DELETE'&&path[1]){const playerId=oid(path[1]);if(await d.collection('queue').findOne({playerId,active:true,status:{$in:['waiting','playing','resting']}}))return conflict('Remove this player from active queues before deleting');const activeMatches=await d.collection('matches').find({status:'playing',context:'open'}).project({teams:1}).toArray();if(activeMatches.some(m=>arr(m.teams).flat().some((x:any)=>String(x)===String(playerId))))return conflict('Player is in an active match');await d.collection('players').updateOne({_id:playerId,...visible},{$set:{deletedAt:now()}});return ok({ok:true})}
+  if(method==='DELETE'&&path[1]){
+   const playerId=oid(path[1]);
+   const player=await d.collection('players').findOne({_id:playerId,...visible});
+   if(!player)return err('Player not found',404);
+   const activeMatches=await d.collection('matches').find({status:'playing',context:'open'}).project({teams:1}).toArray();
+   if(activeMatches.some(m=>arr(m.teams).flat().some((x:any)=>String(x)===String(playerId))))return conflict('Finish this player’s active match before deleting');
+   return ok(await transaction(async tx=>{
+    const rows=await d.collection('queue').find({playerId,active:true},{session:tx}).toArray();
+    const sessionIds=rows.map(q=>q.sessionId);
+    await d.collection('queue').updateMany({playerId,active:true,status:{$ne:'playing'}},{$set:{active:false,status:'left',leftAt:now()}},{session:tx});
+    if(sessionIds.length)await d.collection('guestClaims').deleteMany({sessionId:{$in:sessionIds},normalizedName:String(player.name).trim().replace(/\s+/g,' ').toLocaleLowerCase('en')},{session:tx});
+    await d.collection('players').updateOne({_id:playerId,...visible},{$set:{deletedAt:now()}},{session:tx});
+    return {ok:true};
+   }));
+  }
  }
  if(path[0]==='sessions'){
   if(method==='GET'&&path.length===1)return ok(await d.collection('sessions').find(visible).sort({createdAt:-1}).limit(100).toArray());
   if(method==='POST'&&path.length===1){adminOnly();const courtIds=arr(body.courtIds).map((x:string)=>oid(x));if(!courtIds.length)return err('Select at least one court');const r=await d.collection('sessions').insertOne({name:String(body.name||'Open Play'),courtIds,queuePolicy:body.queuePolicy||'fifo',teamPolicy:body.teamPolicy||'random',status:'active',target:11,winBy:2,createdAt:now()});return ok({id:String(r.insertedId)},201)}
   if(!path[1])return err('Session ID required');const sessionId=oid(path[1]);const session=await d.collection('sessions').findOne({_id:sessionId,...visible});if(!session)return err('Session not found',404);
-  if(method==='GET'&&path.length===2){const [queue,matches]=await Promise.all([d.collection('queue').find({sessionId,active:true}).sort({joinedAt:1}).toArray(),d.collection('matches').find({sessionId}).sort({createdAt:-1}).limit(100).toArray()]);return ok({session,queue,matches})}
+  if(method==='GET'&&path.length===2){const [queue,matches]=await Promise.all([d.collection('queue').find({sessionId,active:true}).sort({joinedAt:1}).toArray(),d.collection('matches').find({sessionId,archivedAt:{$exists:false}}).sort({createdAt:-1}).limit(100).toArray()]);return ok({session,queue,matches})}
   if(path.length===2&&method==='PATCH'){adminOnly();if(!['active','disabled'].includes(body.status))return err('Invalid session status');if(body.status==='active'&&session.status==='completed')return conflict('Completed sessions cannot be reopened');await d.collection('sessions').updateOne({_id:sessionId},{$set:{status:body.status}});return ok({ok:true})}
   if(path.length===2&&method==='DELETE'){adminOnly();if(await d.collection('matches').findOne({sessionId,status:'playing'}))return conflict('Complete active matches before deleting the session');await d.collection('sessions').updateOne({_id:sessionId},{$set:{status:'disabled',deletedAt:now()}});await d.collection('queue').updateMany({sessionId,active:true},{$set:{active:false,status:'left'}});return ok({ok:true})}
+  if(path[2]==='reset'&&method==='POST'){
+   adminOnly();
+   if(await d.collection('matches').findOne({sessionId,status:'playing'}))return conflict('Complete active matches before resetting the session');
+   return ok(await transaction(async tx=>{
+    const resetAt=now();
+    await d.collection('queue').updateMany({sessionId,active:true},{$set:{active:false,status:'cleared',clearedAt:resetAt}},{session:tx});
+    await d.collection('matches').updateMany({sessionId,archivedAt:{$exists:false}},{$set:{archivedAt:resetAt}},{session:tx});
+    await d.collection('guestClaims').deleteMany({sessionId},{session:tx});
+    await d.collection('sessions').updateOne({_id:sessionId},{$set:{lastResetAt:resetAt},$inc:{resetCount:1}},{session:tx});
+    return {ok:true,message:'Session cleared. Existing player profiles and match history are retained.'};
+   }));
+  }
   if(path[2]==='settings'&&method==='PATCH'){adminOnly();const policy=['fifo','four','winner'].includes(body.queuePolicy)?body.queuePolicy:session.queuePolicy;const team=['random','balanced','fixed'].includes(body.teamPolicy)?body.teamPolicy:session.teamPolicy;await d.collection('sessions').updateOne({_id:sessionId},{$set:{queuePolicy:policy,teamPolicy:team}});return ok({ok:true})}
   if(path[2]==='join'&&method==='POST'){adminOnly();
    const playerId=body.playerId?oid(body.playerId):user? (await d.collection('players').findOne({userId:oid(user.id)}))?._id:null;
