@@ -1,3 +1,4 @@
+import type { ObjectId } from 'mongodb';
 import {createHash,randomBytes,timingSafeEqual} from 'node:crypto';
 export const token=()=>randomBytes(32).toString('base64url');
 export const hash=(s:string)=>createHash('sha256').update(s).digest('hex');
@@ -5,7 +6,7 @@ export const valid=(raw:string,stored:string)=>{const a=Buffer.from(hash(raw),'h
 export type Skill='beginner'|'intermediate'|'advanced';export type Style='casual'|'balanced'|'competitive';
 export type Player={id:string,name:string,skill:Skill,style:Style,plays:number,wins:number,joined:number};
 export type Match={id:string,court:number,teams:[string[],string[]],status:'playing'|'finished',score?:[number,number],createdAt:number};
-export type Session={_id?:unknown,ownerHash:string,version:number,name:string,courts:number,rotation:'fifo'|'balanced'|'random'|'fixed',players:Player[],matches:Match[],createdAt:Date,updatedAt:Date};
+export type Session={_id?:ObjectId,ownerHash:string,version:number,name:string,courts:number,rotation:'fifo'|'balanced'|'random'|'fixed',players:Player[],matches:Match[],createdAt:Date,updatedAt:Date};
 export const uuid=()=>randomBytes(12).toString('hex');
 export function choose(players:Player[],matches:Match[],rotation:Session['rotation']){const busy=new Set(matches.filter(m=>m.status==='playing').flatMap(m=>m.teams.flat()));let waiting=players.filter(p=>!busy.has(p.id));if(waiting.length<4)return null;
  waiting.sort((a,b)=>a.plays-b.plays||a.joined-b.joined);
