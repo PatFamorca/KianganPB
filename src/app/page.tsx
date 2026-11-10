@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import InstallPWA from '@/components/InstallPWA';
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
             <Link className="home-action-link" href="/open-play">Join Open Play</Link>
             <Link className="home-action-link home-link-outline" href="/display">View Live Courts</Link>
           </div>
+          <InstallPWA />
           <div className="home-schedule" aria-label="Weekly Open Play schedule">
             <strong>Weekly Open Play</strong>
             <span>Mon · Wed · Fri — 6:30–8:00 PM</span>

@@ -270,3 +270,11 @@ button:disabled{cursor:wait}
 .footer-logout{font:inherit;font-size:12px;padding:5px 10px;min-height:32px;border:1px solid var(--line);border-radius:8px;background:transparent;color:inherit;cursor:pointer}
 .footer-logout:disabled{opacity:.6;cursor:wait}
 @media(max-width:480px){.site-footer{padding:14px 12px 22px}.footer-admin{margin-top:7px}.footer-session{gap:6px}}
+
+/* Homepage PWA install action */
+.home-install { margin-top: 12px; max-width: 420px; }
+.home-install-button { cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; font: inherit; border: 1px solid currentColor; border-radius: 10px; background: #155b43; color: #fff; padding: 10px 18px; font-weight: 700; }
+.home-install-button:hover { background: #0d4431; }
+.home-install-button:focus-visible { outline: 3px solid #f2c94c; outline-offset: 3px; }
+.home-install-help { margin: 10px 0 0; padding: 12px; border-radius: 10px; background: #e7f4eb; color: #153b2b; font-size: .9rem; line-height: 1.5; }
+@media(max-width: 600px) { .home-install-button { width: 100%; } }
