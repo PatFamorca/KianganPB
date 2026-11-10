@@ -281,3 +281,88 @@ button:disabled{cursor:wait}
 
 /* Mobile-first self-service organizer */
 body{overflow-x:hidden}.self-main{max-width:1120px;margin:0 auto;padding:18px 14px 80px}.self-hero{background:linear-gradient(140deg,#114936,#197b57);color:white;border-radius:22px;padding:32px 22px;margin-bottom:20px}.self-hero h1{font-size:clamp(2rem,6vw,3.3rem);line-height:1.12;max-width:650px;margin:12px 0}.self-hero p{max-width:560px;opacity:.9;margin-bottom:24px}.self-eyebrow{font-size:.78rem;letter-spacing:.08em;font-weight:700}.self-panel{background:#fff;border:1px solid #dbe8e1;border-radius:17px;padding:18px;margin:12px 0;min-width:0;box-shadow:0 3px 14px #123b2510}.self-panel h2{font-size:1.18rem;margin:0 0 12px}.self-primary,.self-outline,.self-danger-outline{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:10px 16px;border-radius:11px;font-weight:700;cursor:pointer;text-decoration:none;font:inherit}.self-primary{background:#176d4a;color:white;border:1px solid #176d4a}.self-outline{background:white;color:#15583f;border:1px solid #a4c5b5}.self-danger-outline{background:#fff;color:#a52626;border:1px solid #e6b9b9}.self-primary:disabled,.self-outline:disabled,.self-danger-outline:disabled{opacity:.5;cursor:not-allowed}.self-muted{color:#65756c;font-size:.88rem}.self-error{color:#a52626;background:#fff1f1;border-radius:10px;padding:12px}.self-empty{padding:18px 0;color:#65756c}.self-session-link{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 4px;border-bottom:1px solid #e4ece7;color:#16593f;text-decoration:none}.self-form{display:grid;gap:15px;max-width:650px}.self-form label{display:grid;gap:6px;font-weight:600;font-size:.9rem}.self-form input,.self-form select,.self-score input{width:100%;min-width:0;min-height:46px;border:1px solid #b8cfc3;border-radius:10px;padding:10px 12px;font:inherit;background:#fff;color:#19392c}.self-heading{display:flex;justify-content:space-between;gap:12px;align-items:center}.self-heading h1{font-size:clamp(1.4rem,5vw,2rem);margin:8px 0}.self-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;background:#e6f0ea;border-radius:12px;padding:5px;margin:18px 0}.self-tabs button{border:0;background:transparent;padding:12px 3px;border-radius:9px;font-size:.85rem;cursor:pointer;color:#28553f}.self-tabs button.selected{background:#fff;box-shadow:0 1px 5px #123b2520;font-weight:700}.self-court-grid{display:grid;grid-template-columns:1fr;gap:12px}.self-court{display:grid;grid-template-columns:1fr 8px 1fr;background:#19764f;color:white;border:3px solid #b8e4c2;border-radius:12px;min-height:150px;overflow:hidden}.self-team{display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;gap:12px;text-align:center;padding:14px 5px;overflow-wrap:anywhere}.self-net{background:repeating-linear-gradient(to bottom,#f5fff1 0 6px,transparent 6px 11px);border-left:1px solid #d6f1d7;border-right:1px solid #d6f1d7}.self-score{display:flex;gap:10px;align-items:center;margin:14px 0}.self-score input{text-align:center}.self-details{margin-top:14px}.self-details summary{cursor:pointer;font-weight:700;padding:9px 0}.self-manual{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:10px 0}.self-manual label{display:flex;align-items:center;gap:6px;font-size:.85rem}.self-chips{display:flex;flex-wrap:wrap;gap:8px}.self-chips span{background:#edf6ef;border-radius:30px;padding:8px 12px;font-size:.83rem}.self-list>div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #e5eee8}.self-list small{display:block;color:#65756c;margin-top:4px}.self-list button{flex-shrink:0}.self-two{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(min-width:760px){.self-main{padding:30px 24px 100px}.self-hero{padding:55px}.self-court-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.self-panel{padding:24px}.self-tabs{max-width:600px}.self-tabs button{font-size:1rem}}@media(max-width:390px){.self-two{grid-template-columns:1fr}.self-manual{grid-template-columns:1fr}.self-heading{align-items:flex-start}.self-heading .self-outline{font-size:.8rem;padding:8px}}
+
+
+/* v7.1 — accessible, compact self-service UI. Keep light surfaces self-contained. */
+.self-main,.self-organizer,.self-home{color:var(--text)}
+.self-panel{color:#19392c;background:#fff;border-color:#d6e5dc;box-shadow:0 3px 12px rgba(0,0,0,.08)}
+.self-panel h1,.self-panel h2,.self-panel h3,.self-panel strong,.self-panel summary,.self-panel label,.self-panel .self-list,.self-panel .self-chips{color:#173e2e}
+.self-panel p,.self-panel small,.self-panel .self-muted{color:#536a5d}
+.self-panel .self-empty{color:#536a5d}
+.self-panel button{font-size:.9rem}
+.self-panel .self-primary{background:#176d4a;color:#fff;border-color:#176d4a}
+.self-panel .self-outline{background:#fff;color:#15583f;border-color:#91b5a1}
+.self-panel .self-danger-outline{background:#fff;color:#a52626;border-color:#dba5a5}
+.self-panel input:not([type=checkbox]),.self-panel select{background:#fff;color:#19392c;border:1px solid #9ebdaf;min-width:0}
+.self-panel input::placeholder{color:#61796c;opacity:1}
+.self-panel input[type=checkbox]{accent-color:#176d4a;min-width:19px;width:19px;height:19px;min-height:19px;flex:none}
+.self-panel .self-chips span{color:#204d36;background:#e5f2e9;border:1px solid #d2e7d8}
+.self-panel .self-list>div{min-width:0}
+.self-panel .self-list>div>span,.self-panel .self-list>div>strong{min-width:0;overflow-wrap:anywhere}
+.self-panel .self-session-link{color:#15583f}
+.self-panel .self-session-link span{color:#236b4c;font-weight:700;white-space:nowrap}
+.self-panel .self-court{color:#fff}
+.self-panel .self-team strong{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+.self-panel .self-details summary{color:#1c583e}
+.self-panel .self-manual label{color:#204a35;min-width:0;overflow-wrap:anywhere}
+.self-panel .self-score span{color:#204a35}
+.self-panel .self-error{color:#a52626}
+.self-heading h1{color:#f4fff8}
+.self-heading .self-muted{color:#b6d3c4}
+.self-tabs button{color:#194b35;background:transparent;font-weight:600}
+.self-tabs button.selected{color:#133d2a;background:#fff}
+.self-organizer{max-width:1080px;margin:0 auto}
+.self-court-grid{gap:10px}
+.self-court-grid .self-panel{margin:0;padding:14px}
+.self-court-grid .self-panel h2{font-size:1.02rem;margin-bottom:12px}
+.self-court{min-height:136px}
+.self-team{gap:8px;padding:10px 4px}
+.self-team strong{font-size:clamp(.84rem,3vw,1rem)}
+.self-chips{gap:6px}
+.self-chips span{padding:6px 10px;font-size:.79rem}
+.self-list>div{padding:10px 0}
+.self-form{gap:12px}
+.self-form h1{margin:0;font-size:clamp(1.5rem,5vw,2rem)}
+.self-score{gap:8px;margin:10px 0}
+.self-details{margin-top:10px}
+.self-details summary{padding:10px 0}
+.self-heading{margin:6px 0 12px}
+.self-heading .self-outline{flex-shrink:0;background:transparent;color:#e7fff1;border-color:#6eac8b}
+.self-home .home-hero{margin-bottom:22px}
+.self-home .home-hero-content{min-width:0}
+.self-home .home-hero-content h1{color:#f4fff6}
+.self-home .home-hero-content>p{color:#c5ddcf}
+.self-home .home-eyebrow{color:#c5f66b;font-weight:700;font-size:.78rem;letter-spacing:.06em}
+.self-home .home-hero-buttons .home-action-link{display:inline-flex;align-items:center;justify-content:center;text-align:center;min-height:48px;padding:12px 17px;border-radius:11px;text-decoration:none;font-weight:700}
+.self-home .home-hero-buttons .self-primary{color:#143b29;background:#c5f66b;border:1px solid #c5f66b}
+.self-home .home-hero-buttons .home-link-outline{color:#e9fff1;border:1px solid #87b99d;background:transparent}
+.self-home .home-schedule{background:#15382b;color:#e9fff0;border-color:#43725a}
+.self-home .home-schedule strong{color:#f4fff6}
+.self-home .home-schedule small{color:#c5ddcf}
+.self-home .home-install{margin-top:0;width:100%}
+.self-home .home-install-button{background:#fff;color:#15583f;border-color:#fff;min-height:46px}
+.self-home .home-install-help{color:#153b2b}
+.self-home-sessions{scroll-margin-top:16px}
+.self-home-sessions .self-panel{margin:0}
+.site-header{gap:8px}
+.site-nav{display:flex;gap:6px}
+.site-nav a{color:#effcf2;background:#173b2c;border-radius:10px;padding:9px 12px}
+@media(max-width:760px){
+ .self-main{padding:12px 10px 55px}
+ .self-panel{padding:14px;margin:9px 0;border-radius:14px}
+ .self-heading{align-items:flex-start}
+ .self-heading h1{font-size:clamp(1.35rem,5vw,1.8rem)}
+ .self-tabs{position:sticky;top:0;z-index:5;margin:10px 0;padding:4px;background:#e6f0ea}
+ .self-tabs button{min-height:46px;padding:9px 3px;font-size:.83rem}
+ .self-home{padding:12px 10px 50px}
+ .self-home .home-hero{gap:18px}
+ .self-home .home-hero-buttons{grid-template-columns:1fr 1fr;gap:8px}
+ .self-home .home-hero-buttons .home-action-link{padding:10px 7px;font-size:.86rem}
+ .self-home .home-hero-poster .home-poster{max-width:360px}
+ .self-home .home-schedule{padding:14px}
+ .site-header{display:flex;align-items:center;flex-wrap:wrap}
+ .site-brand{padding:0;font-size:18px}
+ .site-nav{margin:0;width:100%;display:grid;grid-template-columns:1fr 1fr}
+ .site-nav a{font-size:.83rem;text-align:center}
+}
+@media(max-width:390px){.self-home .home-hero-buttons{grid-template-columns:1fr}.self-heading .self-outline{padding:8px;font-size:.78rem}.self-list>div{gap:8px}.self-list button{padding:8px}}

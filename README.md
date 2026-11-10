@@ -1,22 +1,14 @@
-# Kiangan Pickleball — self-service Open Play PWA
+# Kiangan Pickleball v7.1 — Mobile UI Refresh
 
-Mobile-first Next.js 14 app for creating private, device-owned Open Play sessions.
+Self-service Open Play organizer for Next.js, MongoDB Atlas and Vercel. No admin accounts. This update improves contrast on white panels, restores the original poster-based homepage with Create Open Play / My Sessions / Install App actions, and compacts mobile organizer layouts.
 
-## Setup
+## Deploy
 
-1. `npm ci`
-2. Set `MONGODB_URI` and optionally `MONGODB_DB` in `.env.local`.
-3. `npm run build` then `npm start` (or `npm run dev`).
-4. Deploy to Vercel with the same environment variables and HTTPS.
+1. Upload this project's contents to a GitHub repository.
+2. Import the repository as a Next.js project in Vercel.
+3. Configure `MONGODB_URI` and `MONGODB_DB` in Vercel environment variables.
+4. Deploy and check Create Open Play, adding players, court assignments, scoring, saved sessions and PWA install on an Android device.
 
-## Data and ownership
+Sessions use the `selfOpenPlaySessions` collection; existing database collections are not migrated or deleted. Device ownership keys are saved in browser localStorage. Browser and installed PWA storage may differ; clearing storage can lose access to sessions.
 
-New sessions use the **selfOpenPlaySessions** MongoDB collection. Existing collections are left untouched. Each new session gets a random organizer key stored in the creating browser's localStorage; only its SHA-256 hash is stored in MongoDB. Requests require that key. Clearing browser storage, changing browsers/devices, or losing the device loses access to the session; there is no account recovery. Anyone who obtains a device key can control that session. Export/backup and multi-device sync are not included.
-
-## Features
-
-Create/resume/reset/delete sessions; court count; player names/skill/style; fair, balanced, random, or fixed rotation; automatic/manual assignments; 11-point win-by-two scoring; rankings; PWA installation. No admin dashboard. Match history is session-scoped and reset deletes it. Live data requires internet.
-
-## Important
-
-Device-based ownership is convenient but not suitable for shared/public organizer devices. Existing MongoDB records are preserved but the old admin/public routes are removed. Production build and browser smoke tests should be performed before deployment.
+Run `npm install`, `npm test`, and `npm run build` locally before deploying. Do not upload `.env.local` or `node_modules`.
