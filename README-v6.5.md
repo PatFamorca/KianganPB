@@ -1,0 +1,1 @@
+Kiangan Pickleball v6.5: footer Admin link points to /admin; separate Open Play, Courts and Players admin tabs; players tab supports multi-select and confirmed bulk deletion via existing player DELETE API. Active-match player deletion remains blocked; partial failures are shown. Existing Open Play features retained.

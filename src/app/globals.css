@@ -216,3 +216,49 @@ h2{line-height:1.25}
 .player-bulk-toolbar span{color:var(--muted);font-size:13px;margin-right:auto}
 .player-bulk-toolbar button{min-height:36px;padding:7px 12px}
 @media(max-width:700px){.player-bulk-toolbar button{width:100%}.admin-tabs button{flex:1 1 28%}}
+
+/* v6.6: mobile-first interaction and rendering optimizations */
+html{overflow-x:clip}
+body{overflow-wrap:break-word}
+button,a,input,select{ -webkit-tap-highlight-color:transparent }
+button,a{touch-action:manipulation}
+button:active:not(:disabled){transform:scale(.985)}
+button:disabled{cursor:wait}
+.dashboard-sync{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin:0 0 12px;font-size:12px;color:var(--muted)}
+.dashboard-sync button{min-height:36px;padding:6px 14px;font-size:13px}
+.admin-tabs{position:sticky;top:0;z-index:15;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));max-width:none!important;padding:8px 0;background:var(--bg);gap:7px;margin:12px 0}
+.admin-tabs button{min-width:0;width:100%;min-height:48px;padding:8px 5px;font-size:14px}
+.admin-page .card,.court-tile,.live-subsection{min-width:0}
+.admin-page input,.admin-page select,.public-open-play input,.public-open-play select{width:100%;min-width:0}
+.players-management .entity-row{display:grid;grid-template-columns:24px minmax(0,1fr) auto auto;gap:7px}
+.players-management .entity-row strong{min-width:0;overflow-wrap:anywhere}
+.players-management .entity-row button{min-height:42px;padding:8px 10px}
+.player-bulk-toolbar{position:sticky;top:65px;z-index:10;background:var(--panel);padding:10px 4px}
+.court-tile,.pool-player,.queue-entry,.ranking-entry{content-visibility:auto;contain-intrinsic-size:auto 180px}
+@media(max-width:760px){
+ .admin-page{padding:12px 10px 60px}
+ .admin-page h1{font-size:clamp(25px,7vw,32px);margin-bottom:8px}
+ .admin-page .card{padding:14px;margin:9px 0}
+ .admin-grid{margin:12px 0;gap:10px}
+ .admin-tabs{top:0;margin:8px -2px 12px;padding:8px 2px}
+ .admin-tabs button{font-size:13px;min-height:50px}
+ .admin-quick-add{padding:0}
+ .admin-page .row{gap:8px}
+ .admin-page .row button{min-height:44px}
+ .compact-management .compact-entity-row button{min-height:44px!important}
+ .players-management .entity-list{max-height:none;overflow:visible}
+ .players-management .entity-row{grid-template-columns:24px minmax(0,1fr) auto auto}
+ .players-management .entity-row button{padding:8px;font-size:12px}
+ .player-bulk-toolbar{top:66px;display:grid;grid-template-columns:1fr auto;gap:8px}
+ .player-bulk-toolbar button{grid-column:1/-1;min-height:46px}
+ .session-controls,.session-checkin{padding:12px}
+ .court-board{gap:10px}
+ .court-tile{padding:12px}
+ .court-surface{min-height:190px}
+ .live-display-header{gap:12px}
+ .queue-list,.ranking-list{max-height:none;overflow:visible}
+ .home-hero-buttons{grid-template-columns:1fr 1fr}
+ .home-action-link{min-height:48px}
+}
+@media(max-width:380px){.players-management .entity-row{grid-template-columns:24px minmax(0,1fr) auto}.players-management .entity-row button:last-child{grid-column:3}.home-hero-buttons{grid-template-columns:1fr}}
+@media(min-width:1000px){.admin-tabs{position:static;max-width:650px!important}.player-bulk-toolbar{position:static}}
