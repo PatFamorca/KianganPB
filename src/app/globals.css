@@ -262,3 +262,11 @@ button:disabled{cursor:wait}
 }
 @media(max-width:380px){.players-management .entity-row{grid-template-columns:24px minmax(0,1fr) auto}.players-management .entity-row button:last-child{grid-column:3}.home-hero-buttons{grid-template-columns:1fr}}
 @media(min-width:1000px){.admin-tabs{position:static;max-width:650px!important}.player-bulk-toolbar{position:static}}
+
+/* Compact admin account controls in the global footer. */
+.footer-session{display:inline-flex;align-items:center;justify-content:center;gap:8px;max-width:100%;flex-wrap:wrap}
+.footer-user{font-size:12px;max-width:min(60vw,260px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.footer-role{opacity:.7}
+.footer-logout{font:inherit;font-size:12px;padding:5px 10px;min-height:32px;border:1px solid var(--line);border-radius:8px;background:transparent;color:inherit;cursor:pointer}
+.footer-logout:disabled{opacity:.6;cursor:wait}
+@media(max-width:480px){.site-footer{padding:14px 12px 22px}.footer-admin{margin-top:7px}.footer-session{gap:6px}}
