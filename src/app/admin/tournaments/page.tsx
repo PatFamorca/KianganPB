@@ -1,1 +1,0 @@
-import TournamentHub from '@/components/TournamentHub';import {identity,isAdmin} from '@/lib/auth';import {redirect} from 'next/navigation';export default async function Page(){if(!isAdmin(await identity()))redirect('/admin/login');return <TournamentHub admin/>}

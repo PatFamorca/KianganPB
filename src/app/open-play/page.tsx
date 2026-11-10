@@ -1,1 +1,0 @@
-import GuestOpenPlay from '@/components/GuestOpenPlay';export default function Page(){return <GuestOpenPlay/>}
