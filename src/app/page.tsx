@@ -1,0 +1,2 @@
+import Link from 'next/link';import InstallPWA from '@/components/InstallPWA';import MySessions from '@/components/MySessions';
+export default function Home(){return <main className="self-main"><section className="self-hero"><div className="self-eyebrow">🏓 YOUR OPEN PLAY, YOUR RULES</div><h1>Organize a great game in minutes.</h1><p>Create courts, add players, choose fair rotations, and pick up where you left off. No account needed.</p><Link className="self-primary" href="/create">＋ Create Open Play</Link><InstallPWA/></section><MySessions/></main>}
