@@ -366,3 +366,17 @@ body{overflow-x:hidden}.self-main{max-width:1120px;margin:0 auto;padding:18px 14
  .site-nav a{font-size:.83rem;text-align:center}
 }
 @media(max-width:390px){.self-home .home-hero-buttons{grid-template-columns:1fr}.self-heading .self-outline{padding:8px;font-size:.78rem}.self-list>div{gap:8px}.self-list button{padding:8px}}
+
+/* v7.2: dedicated session library and compact court planning controls */
+.site-nav{display:flex;flex-wrap:wrap;gap:6px}
+.self-sessions-page{max-width:900px;margin:auto}
+.self-nav-action{display:inline-flex;text-decoration:none;align-items:center;justify-content:center;min-height:44px;white-space:nowrap}
+.self-score-title{font-size:.92rem;margin:12px 0 0;color:#173e2e}
+.self-subpanel{border:1px solid #dbe9df;border-radius:10px;padding:8px 10px;margin:10px 0;background:#f7fbf8}
+.self-replace-grid{display:grid;gap:8px;margin-top:10px}
+.self-replace-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) auto;gap:6px;align-items:center}
+.self-replace-row span{font-size:.82rem;font-weight:600;overflow-wrap:anywhere}
+.self-replace-row select{width:100%;min-width:0;min-height:40px;border:1px solid #a5c7b2;border-radius:8px;background:white;color:#173e2e;padding:6px;font-size:.82rem}
+.self-replace-row button{padding:9px;font-size:.8rem}
+.self-action-row{display:flex;flex-wrap:wrap;gap:8px}
+@media(max-width:760px){.site-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%}.site-nav a{padding:10px 4px}.self-replace-row{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}.self-replace-row button{grid-column:2}.self-subpanel{padding:8px}.self-sessions-page .self-heading{flex-wrap:wrap}}
