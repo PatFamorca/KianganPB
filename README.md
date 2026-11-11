@@ -44,3 +44,9 @@ Production build requires npm dependencies and was not verifiable in the artifac
 ## Bulk player entry
 
 In a session, open **Players → Multiple players**, paste one name per line, choose the shared skill level and play style, then select **Add players**. Duplicate names and entries exceeding the 250-player session limit are rejected before saving. The single-player form is still available.
+
+## iPhone and iPad installation (v7.6)
+
+Open the deployed HTTPS website in Safari, tap **Install App** on the homepage for instructions, then tap Safari's **Share** menu → **Add to Home Screen** → **Add**. On supported iOS versions, keep **Open as Web App** enabled. iOS does not expose the Android `beforeinstallprompt` event. Android Chrome can show the native installation prompt or its browser menu.
+
+The app includes an Apple touch icon, Apple web-app metadata, and safe-area spacing. Device-based saved session keys can be isolated between Safari and the installed PWA: create sessions inside the installed app. This release does not change the MongoDB schema.

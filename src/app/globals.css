@@ -395,3 +395,13 @@ body{overflow-x:hidden}.self-main{max-width:1120px;margin:0 auto;padding:18px 14
 .self-add-mode button{min-height:42px;padding:.6rem .5rem;font-size:.9rem}
 .self-form textarea{width:100%;box-sizing:border-box;min-height:135px;resize:vertical;padding:.75rem;border:1px solid #b6c9bd;border-radius:10px;background:#fff;color:#142e22;font:inherit;line-height:1.5}
 .self-form textarea:focus-visible{outline:2px solid #1e704a;outline-offset:2px}
+
+/* iOS standalone safe areas and mobile install instructions */
+.site-header {padding-top: max(12px, env(safe-area-inset-top));}
+.site-footer {padding-bottom: max(16px, env(safe-area-inset-bottom));}
+.home-install-help {max-width: 36rem; line-height: 1.5; overflow-wrap: anywhere;}
+.home-install-help ol {margin: 8px 0 10px; padding-left: 1.35rem;}
+.home-install-help li + li {margin-top: 6px;}
+.home-install-help p {margin: 8px 0;}
+.install-storage-note {font-size: .82rem; opacity: .88;}
+@media (max-width: 600px) {.home-install-button {min-height: 44px; width: 100%;} .home-install-help {font-size: .9rem;}}
