@@ -380,3 +380,7 @@ body{overflow-x:hidden}.self-main{max-width:1120px;margin:0 auto;padding:18px 14
 .self-replace-row button{padding:9px;font-size:.8rem}
 .self-action-row{display:flex;flex-wrap:wrap;gap:8px}
 @media(max-width:760px){.site-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%}.site-nav a{padding:10px 4px}.self-replace-row{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}.self-replace-row button{grid-column:2}.self-subpanel{padding:8px}.self-sessions-page .self-heading{flex-wrap:wrap}}
+
+/* Center the primary match-completion action on all screen sizes. */
+.self-finish-button { display:block; width:min(100%, 18rem); margin:1rem auto 0; text-align:center; }
+.self-rotation-help { font-size:.83rem; line-height:1.55; margin-top:-.25rem; }

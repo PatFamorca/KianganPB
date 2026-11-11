@@ -33,3 +33,10 @@ npm run build
 - Reset clears plans, scores and game/win counts while keeping registered players.
 
 Production build requires npm dependencies and was not verifiable in the artifact preparation environment.
+
+## v7.3 UI changes
+
+- Removed the redundant future-match planning controls and endpoints; manual court assignment remains.
+- Active courts show **Final Scores** and a centered **Finish match** button.
+- Both session creation and settings explain each rotation option.
+- Existing MongoDB session data remains preserved; legacy planned lineups are ignored and cleared on the next session update.
