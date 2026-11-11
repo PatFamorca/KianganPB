@@ -384,3 +384,8 @@ body{overflow-x:hidden}.self-main{max-width:1120px;margin:0 auto;padding:18px 14
 /* Center the primary match-completion action on all screen sizes. */
 .self-finish-button { display:block; width:min(100%, 18rem); margin:1rem auto 0; text-align:center; }
 .self-rotation-help { font-size:.83rem; line-height:1.55; margin-top:-.25rem; }
+
+/* v7.4: readable skill and play style beneath each on-court player */
+.self-court-player{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;max-width:100%;line-height:1.25}
+.self-court-player strong{display:block;max-width:100%;overflow-wrap:anywhere;color:#fff}
+.self-court-player small{display:block;font-size:clamp(.65rem,2.35vw,.76rem);font-weight:500;line-height:1.25;color:#e3f9e9;text-transform:capitalize;overflow-wrap:anywhere}
