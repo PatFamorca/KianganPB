@@ -50,3 +50,9 @@ In a session, open **Players → Multiple players**, paste one name per line, ch
 Open the deployed HTTPS website in Safari, tap **Install App** on the homepage for instructions, then tap Safari's **Share** menu → **Add to Home Screen** → **Add**. On supported iOS versions, keep **Open as Web App** enabled. iOS does not expose the Android `beforeinstallprompt` event. Android Chrome can show the native installation prompt or its browser menu.
 
 The app includes an Apple touch icon, Apple web-app metadata, and safe-area spacing. Device-based saved session keys can be isolated between Safari and the installed PWA: create sessions inside the installed app. This release does not change the MongoDB schema.
+
+## Messenger / Facebook in-app browser (v7.7)
+
+The homepage and session creation page detect common Messenger/Facebook/Instagram in-app browser user-agent signatures and display instructions to open the site in Chrome or Safari. The homepage install button switches to **Open in Browser** in those environments. A **Copy link** action and selectable URL are provided as fallbacks. The warning can be dismissed; the site remains usable inside the in-app browser.
+
+**Limitations:** In-app browser detection is best-effort; app user-agent signatures can change. Websites cannot reliably force Messenger to open another browser. Session ownership remains tied to the original browser/PWA storage; opening the same URL in another browser does not transfer session keys.

@@ -1,9 +1,11 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import InstallPWA from '@/components/InstallPWA';
+import InAppBrowserNotice from '@/components/InAppBrowserNotice';
 
 export default function Home() {
   return <main className="home-page self-home">
+    <InAppBrowserNotice />
     <section className="home-hero" aria-labelledby="home-title">
       <div className="home-hero-content">
         <span className="home-eyebrow">🏓 KIANGAN PICKLEBALL · OPEN PLAY ORGANIZER</span>

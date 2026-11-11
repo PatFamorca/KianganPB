@@ -1,6 +1,7 @@
 'use client';
 
 import {useEffect, useState} from 'react';
+import {isSocialInAppBrowser} from './InAppBrowserNotice';
 
 type InstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -14,9 +15,11 @@ export default function InstallPWA() {
   const [help, setHelp] = useState(false);
   const [platform, setPlatform] = useState<Platform>('other');
   const [safari, setSafari] = useState(false);
+  const [inApp, setInApp] = useState(false);
 
   useEffect(() => {
     const ua = navigator.userAgent;
+    setInApp(isSocialInAppBrowser(ua));
     const isIos = /iPad|iPhone|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     setPlatform(isIos ? 'ios' : /Android/i.test(ua) ? 'android' : 'other');
     setSafari(isIos && /Safari/i.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/i.test(ua));
@@ -42,6 +45,10 @@ export default function InstallPWA() {
   if (installed) return null;
 
   const install = async () => {
+    if (inApp) {
+      setHelp(value => !value);
+      return;
+    }
     if (!promptEvent) {
       setHelp(value => !value);
       return;
@@ -60,9 +67,10 @@ export default function InstallPWA() {
   return (
     <div className="home-install" aria-label="Install Kiangan Pickleball">
       <button type="button" className="home-action-link home-install-button" onClick={install} aria-expanded={help} aria-controls="install-help">
-        <span aria-hidden="true">⬇</span> Install App
+        <span aria-hidden="true">{inApp ? '🌐' : '⬇'}</span> {inApp ? 'Open in Browser' : 'Install App'}
       </button>
-      {help && (
+      {help && inApp && <div id="install-help" className="home-install-help" role="status">Use Messenger's menu to open this link in Chrome or Safari. If unavailable, copy the page URL into your regular browser before creating sessions.</div>}
+      {help && !inApp && (
         <div id="install-help" className="home-install-help" role="status">
           {platform === 'ios' ? (
             <>
