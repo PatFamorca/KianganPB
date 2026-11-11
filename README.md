@@ -40,3 +40,7 @@ Production build requires npm dependencies and was not verifiable in the artifac
 - Active courts show **Final Scores** and a centered **Finish match** button.
 - Both session creation and settings explain each rotation option.
 - Existing MongoDB session data remains preserved; legacy planned lineups are ignored and cleared on the next session update.
+
+## Bulk player entry
+
+In a session, open **Players → Multiple players**, paste one name per line, choose the shared skill level and play style, then select **Add players**. Duplicate names and entries exceeding the 250-player session limit are rejected before saving. The single-player form is still available.
