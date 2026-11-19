@@ -56,3 +56,11 @@ The app includes an Apple touch icon, Apple web-app metadata, and safe-area spac
 The homepage and session creation page detect common Messenger/Facebook/Instagram in-app browser user-agent signatures and display instructions to open the site in Chrome or Safari. The homepage install button switches to **Open in Browser** in those environments. A **Copy link** action and selectable URL are provided as fallbacks. The warning can be dismissed; the site remains usable inside the in-app browser.
 
 **Limitations:** In-app browser detection is best-effort; app user-agent signatures can change. Websites cannot reliably force Messenger to open another browser. Session ownership remains tied to the original browser/PWA storage; opening the same URL in another browser does not transfer session keys.
+
+## v7.8 Link-based Open Play
+- Organizer link: `/session/<id>#organizer=<secret>` (full management permissions). Keep it private.
+- Player link: `/play/<id>#viewer=<secret>` (read-only courts, queue and rankings, plus self-registration).
+- The organizer's **Copy player link** button initializes access for existing sessions. It derives a stable viewer secret from the organizer secret, so copying again does not invalidate an existing player link.
+- Registration can be opened/closed by the organizer; server-side validation, duplicate-name prevention, 250-player limit and optimistic concurrency apply.
+- Existing MongoDB sessions and device-saved organizer credentials are retained. Open an existing session from My Sessions to obtain links.
+- No accounts required. Player names are not authenticated; organizer must handle impersonation/abuse as appropriate. The player page uses 12-second polling, not push updates. No distributed rate limiter is included.
