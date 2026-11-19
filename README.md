@@ -64,3 +64,9 @@ The homepage and session creation page detect common Messenger/Facebook/Instagra
 - Registration can be opened/closed by the organizer; server-side validation, duplicate-name prevention, 250-player limit and optimistic concurrency apply.
 - Existing MongoDB sessions and device-saved organizer credentials are retained. Open an existing session from My Sessions to obtain links.
 - No accounts required. Player names are not authenticated; organizer must handle impersonation/abuse as appropriate. The player page uses 12-second polling, not push updates. No distributed rate limiter is included.
+
+
+## v7.9 UI refresh
+- Compact, grouped share-session controls for organizer and player links.
+- Mobile-first player page with streamlined registration, court cards, waiting queue and rankings.
+- No API, database schema, or link-access changes.
