@@ -475,19 +475,6 @@ body{overflow-x:hidden}.self-main{max-width:1120px;margin:0 auto;padding:18px 14
 @media(max-width:720px){.self-player-form{grid-template-columns:repeat(2,minmax(0,1fr))}.self-player-name,.self-player-form button{grid-column:1/-1}.self-player-bottom{grid-template-columns:1fr}.self-share-header{flex-wrap:wrap}}
 @media(max-width:480px){.self-share-grid{grid-template-columns:1fr}.self-share-item{padding:11px}.self-share-item-title span{font-size:.7rem}.self-player-header{align-items:flex-start}.self-player-stats{width:100%}.self-player-stats span{flex:1;text-align:center}.self-player-page{gap:9px}}
 
-/* v7.10: Player link shares the organizer's court, queue and leaderboard design. */
-.self-player-organizer-style{display:block}
-.self-player-organizer-style .self-player-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.self-player-organizer-style .self-player-heading h1{margin:4px 0;color:#f4fff8}
-.self-player-organizer-style .self-player-eyebrow{color:#b9e7c6}
-.self-player-organizer-style .self-player-summary{margin:0 0 12px}
-.self-player-organizer-style .self-player-join{margin:0 0 14px}
-.self-player-organizer-style .self-player-courts-title{margin:4px 0 10px}
-.self-player-organizer-style .self-court-grid{margin-bottom:12px}
-.self-player-organizer-style .self-player-available{min-height:136px;display:grid;place-items:center;color:#617e6c;font-size:.84rem;border:1px dashed #b8d1bf;border-radius:10px}
-.self-player-organizer-style .self-player-compact-list{margin-top:8px}
-.self-player-organizer-style .self-player-compact-list>div{gap:12px}
-.self-player-organizer-style .self-player-compact-list>div>span:first-child{min-width:0;flex:1}
-.self-player-organizer-style .self-player-compact-list>div>span:last-child{white-space:nowrap;font-size:.79rem}
-.self-player-organizer-style .self-player-bottom{margin-bottom:16px}
-@media(max-width:720px){.self-player-organizer-style .self-player-form{grid-template-columns:repeat(2,minmax(0,1fr))}.self-player-organizer-style .self-player-bottom{grid-template-columns:1fr}}
+/* v7.11: match organizer session heading and waiting player chips on player link */
+.self-player-page .self-player-heading{margin-bottom:0}
+.self-player-page .self-player-heading .self-muted{margin-bottom:0}

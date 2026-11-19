@@ -70,7 +70,3 @@ The homepage and session creation page detect common Messenger/Facebook/Instagra
 - Compact, grouped share-session controls for organizer and player links.
 - Mobile-first player page with streamlined registration, court cards, waiting queue and rankings.
 - No API, database schema, or link-access changes.
-
-
-## v7.10 Player UI alignment
-The player link now uses the organizer court visualization (including net and player details), compact waiting list and leaderboard styling, while preserving self-registration and read-only match controls.
