@@ -2,7 +2,7 @@
 import {useEffect,useState} from 'react';
 type Player={id:string,name:string,skill:string,style:string,plays:number,wins:number};
 type Match={id:string,court:number,teams:[string[],string[]],status:string,score?:[number,number]};
-type Session={name:string,courts:number,players:Player[],matches:Match[],registrationOpen?:boolean};
+type Session={name:string,courts:number,rotation:'fifo'|'balanced'|'random'|'fixed',players:Player[],matches:Match[],registrationOpen?:boolean};
 export default function PlayerSession({id}:{id:string}){
 const [key,setKey]=useState(''),[s,setS]=useState<Session|null>(null),[name,setName]=useState(''),[skill,setSkill]=useState('beginner'),[style,setStyle]=useState('balanced'),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
 useEffect(()=>{const secret=new URLSearchParams(location.hash.slice(1)).get('viewer')||'';setKey(secret)},[]);
