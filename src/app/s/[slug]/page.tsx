@@ -1,0 +1,4 @@
+'use client';
+import {useEffect,useState} from 'react';
+import PlayerSession from '@/components/PlayerSession';
+export default function ShortSession({params}:{params:{slug:string}}){const [owner,setOwner]=useState(false);const [error,setError]=useState('');useEffect(()=>{const secret=new URLSearchParams(location.hash.slice(1)).get('organizer');if(!secret)return;setOwner(true);fetch('/api/self/slug/'+encodeURIComponent(params.slug),{cache:'no-store'}).then(async r=>{const j=await r.json();if(!r.ok)throw Error(j.error||'Session not found');location.replace('/session/'+j.id+'#organizer='+encodeURIComponent(secret))}).catch(e=>setError(e instanceof Error?e.message:'Unable to open session'))},[params.slug]);return <main className='self-main'>{owner?<section className='self-panel'>{error||'Opening organizer session…'}</section>:<PlayerSession id='' slug={params.slug}/>}</main>}

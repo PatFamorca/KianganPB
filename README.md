@@ -70,3 +70,13 @@ The homepage and session creation page detect common Messenger/Facebook/Instagra
 - Compact, grouped share-session controls for organizer and player links.
 - Mobile-first player page with streamlined registration, court cards, waiting queue and rankings.
 - No API, database schema, or link-access changes.
+
+## v7.13 — Open links in installed app and custom short session names
+
+- Paste an existing organizer/player URL in **Open Session Link** on Home or My Sessions. The app opens the link internally, including when installed on iOS.
+- Set an optional unique custom URL name when creating a session, or save one from the organizer Share Session panel. Example player link: `https://kianganpb.vercel.app/session/saturday-open-play`.
+- The organizer link uses the same short path with a private `#organizer=...` key. **Never share this organizer URL publicly.** A custom name does not replace the private organizer key.
+- Public short links permit viewing and self-registration; the server still checks the registration toggle and duplicate names.
+- Existing long player/organizer URLs continue to work; existing sessions are preserved. Renaming a custom link invalidates its previous short URL.
+- A partial unique MongoDB index on `slug` is created on custom-link creation/updates. No manual migration is required, but MongoDB index creation permissions are needed.
+- The full Next.js build and live MongoDB behavior must be verified after installing dependencies and deploying a Preview environment.
