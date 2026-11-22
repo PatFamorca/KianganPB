@@ -87,3 +87,6 @@ The homepage and session creation page detect common Messenger/Facebook/Instagra
 - End session in Organizer → Settings, after all active matches finish. Both organizer and player pages show total completed games, unique players who played, MVP (most wins, tie broken by win rate) and player statistics. Organizers can reopen the session. Reset still clears historical results.
 - Automatic assignment prioritizes equitable games played and penalizes repeat teammates and opponents, with stronger penalties for recently repeated teammates. With only four available players, repeat encounters are unavoidable.
 - Existing sessions require no migration; missing `active` means active and missing `endedAt` means ongoing.
+
+### v7.17 — Switch teammates
+Organizers can use **Switch teammates** on an occupied court, tap one player on each opposing team, and swap their positions immediately. The current match continues; no Start Match step or score entry is required. Same-team selections only change the first selection. The server checks that both players are on opposite teams of the same active match and updates the team assignments atomically using the existing session version check. Stats are not changed until the match is finished; the final teams are used to attribute wins. Player links remain read-only.

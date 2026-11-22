@@ -490,3 +490,15 @@ body{overflow-x:hidden}.self-main{max-width:1120px;margin:0 auto;padding:18px 14
 .self-winner-selection{margin:12px 0}.self-winner-selection p{margin:0 0 8px}.self-winner-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.self-winner-option{padding:12px 8px;border:2px solid var(--line,#cbd5e1);border-radius:10px;background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer}.self-winner-option.selected{border-color:#16a34a;background:#dcfce7;color:#14532d}.self-winner-option:focus-visible{outline:3px solid #16a34a;outline-offset:2px}.self-winner-option:disabled{opacity:.6;cursor:not-allowed}
 
 .self-selectable-court .self-team-choice{appearance:none;font:inherit;color:inherit;min-width:0;cursor:pointer;text-align:center;border:2px solid transparent;border-radius:10px;padding:8px 4px;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}.self-selectable-court .self-team-choice.selected{border-color:#16a34a;background:rgba(34,197,94,.16)}.self-selectable-court .self-team-choice:focus-visible{outline:3px solid #16a34a;outline-offset:2px}.self-selectable-court .self-team-choice:disabled{opacity:.7;cursor:not-allowed}.self-team-choice-label{font-size:.78rem;font-weight:700}.self-winner-hint{font-size:.85rem;text-align:center;margin:8px 0}
+
+/* v7.17: Organizer-only teammate swapping, preserving the original court layout. */
+.self-team-choice-heading{display:block;width:100%;border:0;background:transparent;color:inherit;font:inherit;cursor:pointer;padding:4px 0 8px;text-align:center}
+.self-team-choice-heading:disabled{cursor:default}
+.self-swap-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:10px 0}
+.self-swap-controls .self-muted{margin:0;flex:1 1 190px}
+.self-swap-player{display:block;width:100%;text-align:center;background:transparent;border:2px solid transparent;border-radius:10px;padding:5px 2px;color:inherit;cursor:pointer;font:inherit}
+.self-swap-player:hover,.self-swap-player:focus-visible{border-color:#3a9b83}
+.self-swap-player.selected{border-color:#1c9e70;background:rgba(35,168,113,.15)}
+.self-swap-source{outline:2px solid rgba(35,168,113,.35);outline-offset:-2px}
+
+.self-selectable-court:has(.self-swap-controls){}
