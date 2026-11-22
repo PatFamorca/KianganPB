@@ -510,3 +510,20 @@ body{overflow-x:hidden}.self-main{max-width:1120px;margin:0 auto;padding:18px 14
 .self-selectable-court .self-team-winner-button{width:100%;height:100%;align-self:stretch;justify-content:center;touch-action:manipulation}
 .self-selectable-court .self-team-winner-button:hover{border-color:#16a34a}
 .self-selectable-court .self-team-winner-button .self-court-player{pointer-events:none}
+
+/* Results: readable, full-width mobile player cards instead of a cramped 6-column table. */
+.self-results-mobile-list{display:none}
+@media(max-width:650px){
+ .self-results-table-wrap{display:none}
+ .self-results-mobile-list{display:grid;gap:10px;min-width:0}
+ .self-results-player-card{min-width:0;padding:13px;border:1px solid #dce5e9;border-radius:14px;background:#fff;display:grid;gap:12px}
+ .self-results-player-card.is-mvp{border-color:#9abca7;background:#f3faf5}
+ .self-results-player-head{display:flex;align-items:center;gap:9px;min-width:0}
+ .self-results-player-rank{flex:none;color:#61736a;font-size:.8rem;font-weight:800;min-width:25px}
+ .self-results-player-name{flex:1;min-width:0;overflow-wrap:anywhere;color:#183c2e;font-size:1rem}
+ .self-results-player-mvp{flex:none;border-radius:99px;background:#dcefe0;color:#17603b;font-size:.7rem;font-weight:800;padding:5px 8px}
+ .self-results-player-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+ .self-results-player-metrics>div{display:grid;gap:4px;justify-items:center;text-align:center;background:#f3f6f4;border-radius:9px;padding:9px 2px;min-width:0}
+ .self-results-player-metrics strong{font-size:1.08rem;color:#183c2e;font-variant-numeric:tabular-nums}
+ .self-results-player-metrics span{font-size:.68rem;color:#5d7066}
+}
