@@ -36,7 +36,7 @@ export function choose(players:Player[],matches:Match[],rotation:Session['rotati
    const repeatOpponent=[a,b].reduce((sum,x)=>sum+[c,d].reduce((n,y)=>n+(opponents.get(pair(x.id,y.id))||0),0),0);
    const last=recent.slice(-Math.max(3,Math.ceil(waiting.length/4)));
    const recentPartner=last.reduce((sum,m)=>sum+m.teams.filter(team=>team.includes(a.id)&&team.includes(b.id)||team.includes(c.id)&&team.includes(d.id)).length,0);
-   const recentOpponent=last.reduce((sum,m)=>sum+([a,b].some(x=>m.teams[0].includes(x))&&[c,d].some(x=>m.teams[1].includes(x))?1:0),0);
+   const recentOpponent=last.reduce((sum,m)=>sum+([a,b].some(x=>m.teams[0].includes(x.id))&&[c,d].some(x=>m.teams[1].includes(x.id))?1:0),0);
    const games=group.reduce((sum,x)=>sum+x.plays-min,0);
    const wait=group.reduce((sum,x)=>sum+(lastSeen.get(x.id)??-1),0);
    const skillGap=Math.abs(level(a)+level(b)-level(c)-level(d));
