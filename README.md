@@ -90,3 +90,9 @@ The homepage and session creation page detect common Messenger/Facebook/Instagra
 
 ### v7.17 — Switch teammates
 Organizers can use **Switch teammates** on an occupied court, tap one player on each opposing team, and swap their positions immediately. The current match continues; no Start Match step or score entry is required. Same-team selections only change the first selection. The server checks that both players are on opposite teams of the same active match and updates the team assignments atomically using the existing session version check. Stats are not changed until the match is finished; the final teams are used to attribute wins. Player links remain read-only.
+
+
+## v7.18.3
+- Compact searchable and sortable session results leaderboard, first 8 shown by default.
+- Ended organizer session shows results only, followed by Reopen Session and confirmed Delete Session.
+- Ended player link shows results only; live courts, waiting list and rankings are hidden.

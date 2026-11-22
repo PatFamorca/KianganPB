@@ -3,14 +3,11 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const view=readFileSync('src/components/SessionResults.tsx','utf8');
 const css=readFileSync('src/app/globals.css','utf8');
-test('mobile result cards expose each stat and MVP status',()=>{
- assert.match(view,/self-results-mobile-list/);
- for(const label of ['Wins','Games','Win rate','Best streak'])assert.ok(view.includes(label));
- assert.match(view,/self-results-player-mvp/);
+test('compact mobile leaderboard supports search, sorting, expansion and MVP',()=>{
+ for(const marker of ['self-results-compact','self-results-filters','Search player','Most wins','Win rate','Most games','Win streak','Show all','self-mvp-mini'])assert.ok(view.includes(marker),marker);
 });
-test('desktop table is retained and hidden only on small screens',()=>{
+test('desktop table and responsive compact leaderboard',()=>{
  assert.match(view,/self-results-table-wrap/);
  assert.match(css,/@media\(max-width:650px\)/);
- assert.match(css,/\.self-results-table-wrap\{display:none\}/);
- assert.match(css,/\.self-results-mobile-list\{display:grid/);
+ assert.match(css,/\.self-results-compact\{display:block/);
 });

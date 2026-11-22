@@ -1,8 +1,9 @@
-import React from 'react';
+'use client';
+import React, {useMemo,useState} from 'react';
 
 type Player={id:string,name:string,plays:number,wins:number};
 type Match={id:string,status:string,teams:[string[],string[]],score?:[number,number],winnerTeam?:0|1,createdAt?:number};
-type Props={players:Player[],matches:Match[],onReopen?:()=>void,busy?:boolean};
+type Props={players:Player[],matches:Match[],onReopen?:()=>void,onDelete?:()=>void,busy?:boolean};
 
 /** Match history is authoritative for streaks. Unscored games count as games, but not wins or losses. */
 export function calculateSessionStats(players:Player[],matches:Match[]){
@@ -51,20 +52,23 @@ export function calculateSessionStats(players:Player[],matches:Match[]){
  const byStreak=[...participants].sort((a,b)=>(streaks.get(b.id)?.best??0)-(streaks.get(a.id)?.best??0)||b.wins-a.wins||a.name.localeCompare(b.name));
  return {finished,uniquePartnerships,participants,ranked:finalRanked,mvp:mvps[0],mvps,mvpIds,headToHead,bestRate:byRate[0],mostGames:byGames[0],longestStreak:byStreak[0],streaks,rate};
 }
-export default function SessionResults({players,matches,onReopen,busy}:Props){
- const s=calculateSessionStats(players,matches);const pct=(p:Player)=>Math.round(s.rate(p)*100);
+export default function SessionResults({players,matches,onReopen,onDelete,busy}:Props){
+ const s=useMemo(()=>calculateSessionStats(players,matches),[players,matches]);const [search,setSearch]=useState('');const [sort,setSort]=useState('wins');const [expanded,setExpanded]=useState(false);const pct=(p:Player)=>Math.round(s.rate(p)*100);
+ const rows=[...s.ranked].filter(p=>p.name.toLowerCase().includes(search.trim().toLowerCase())).sort((a,b)=>{const streak=(p:Player)=>s.streaks.get(p.id)?.best??0;const compare=sort==='rate'?s.rate(b)-s.rate(a)||b.wins-a.wins:sort==='games'?b.plays-a.plays||b.wins-a.wins:sort==='streak'?streak(b)-streak(a)||b.wins-a.wins:b.wins-a.wins||s.rate(b)-s.rate(a);return compare||a.name.localeCompare(b.name)});const shown=expanded?rows:rows.slice(0,8);
  return <section className="self-panel self-results" aria-label="Final session results">
   <div className="self-results-heading"><span className="self-results-eyebrow">🏁 Open Play complete</span><h2>Session Results</h2><p className="self-muted">Final standings and highlights</p></div>
   <div className="self-results-overview"><div><strong>{s.finished.length}</strong><span>Games completed</span></div><div><strong>{s.participants.length}</strong><span>Players played</span></div><div><strong>{s.uniquePartnerships}</strong><span>Unique partnerships</span></div></div>
   {s.mvp?<><div className="self-mvp"><span className="self-mvp-crown">🏆</span><span className="self-mvp-label">MOST VALUABLE PLAYER</span><h3>{s.mvps.map(p=>p.name).join(" & ")}</h3>{s.mvps.length>1&&<span className="self-mvp-label">CO-MVPs</span>}<div className="self-mvp-stats"><span><strong>{s.mvp.wins}</strong> Wins</span><span><strong>{s.mvp.plays}</strong> Games</span><span><strong>{pct(s.mvp)}%</strong> Win rate</span><span><strong>{s.streaks.get(s.mvp.id)?.best??0}</strong> Best streak</span></div></div>
-  <div className="self-results-awards"><div><span>🎯 Best win rate</span><strong>{s.bestRate?.name}</strong><small>{pct(s.bestRate!)}% · {s.bestRate?.wins} wins / {s.bestRate?.plays} games</small></div><div><span>🏓 Most games played</span><strong>{s.mostGames?.name}</strong><small>{s.mostGames?.plays} games</small></div><div><span>🔥 Longest win streak</span><strong>{s.longestStreak?.name}</strong><small>{s.streaks.get(s.longestStreak!.id)?.best??0} consecutive wins</small></div></div>
+  <div className="self-results-awards"><div><span>🎯 Best win rate</span><strong>{s.bestRate?.name}</strong><small>{pct(s.bestRate!)}% · {s.bestRate?.wins} wins / {s.bestRate?.plays} games</small></div><div><span>🏓 Most games played</span><strong>{s.mostGames?.name}</strong><small>{s.mostGames?.plays} games</small></div><div><span>🔥 Longest win streak</span><strong>{s.longestStreak?.name}</strong><small>{s.streaks.get(s.longestStreak!.id)?.best??0} consecutive wins</small></div></div></>:<p className="self-muted">No games were played in this session.</p>}
   <div className="self-results-table-heading"><h3>Player statistics</h3><span>{s.ranked.length} players</span></div>
-  <div className="self-results-table-wrap"><table className="self-results-table"><thead><tr><th>#</th><th>Player</th><th>Wins</th><th>Games</th><th>Win %</th><th>Streak</th></tr></thead><tbody>{s.ranked.map((p,i)=><tr key={p.id}><td>{i+1}</td><td><strong>{p.name}</strong>{s.mvpIds.has(p.id)&&<span className="self-mvp-mini"> MVP</span>}</td><td>{p.wins}</td><td>{p.plays}</td><td>{pct(p)}%</td><td>{s.streaks.get(p.id)?.best??0}</td></tr>)}</tbody></table></div></>:<p className="self-muted">No games were played in this session.</p>}
-  <div className="self-results-mobile-list" aria-label="Player statistics mobile view">{s.ranked.map((p,i)=><article className={`self-results-player-card${s.mvpIds.has(p.id)?' is-mvp':''}`} key={p.id}>
-   <div className="self-results-player-head"><span className="self-results-player-rank">#{i+1}</span><strong className="self-results-player-name">{p.name}</strong>{s.mvpIds.has(p.id)&&<span className="self-results-player-mvp">🏆 MVP</span>}</div>
-   <div className="self-results-player-metrics"><div><strong>{p.wins}</strong><span>Wins</span></div><div><strong>{p.plays}</strong><span>Games</span></div><div><strong>{pct(p)}%</strong><span>Win rate</span></div><div><strong>{s.streaks.get(p.id)?.best??0}</strong><span>Best streak</span></div></div>
-  </article>)}</div>
+  <div className="self-results-filters"><label className="self-results-search"><span className="sr-only">Search players</span><input type="search" placeholder="Search player…" value={search} onChange={e=>{setSearch(e.target.value);setExpanded(false)}}/></label><label className="self-results-sort"><span className="sr-only">Sort players</span><select value={sort} onChange={e=>{setSort(e.target.value);setExpanded(false)}}><option value="wins">Most wins</option><option value="rate">Win rate</option><option value="games">Most games</option><option value="streak">Win streak</option></select></label></div>
+  <div className="self-results-table-wrap"><table className="self-results-table"><thead><tr><th>#</th><th>Player</th><th>Wins</th><th>Games</th><th>Win %</th><th>Streak</th></tr></thead><tbody>{shown.map((p,i)=><tr key={p.id}><td>{i+1}</td><td><strong>{p.name}</strong>{s.mvpIds.has(p.id)&&<span className="self-mvp-mini"> 🏆 MVP</span>}</td><td>{p.wins}</td><td>{p.plays}</td><td>{pct(p)}%</td><td>{s.streaks.get(p.id)?.best??0}</td></tr>)}</tbody></table></div>
+  <div className="self-results-compact" aria-label="Player statistics mobile view"><div className="self-results-compact-head"><span>#</span><span>Player</span><span>W</span><span>GP</span><span>Win %</span><span>Stk</span></div>{shown.map((p,i)=><div className="self-results-compact-row" key={p.id}><span>{i+1}</span><strong title={p.name}>{p.name}{s.mvpIds.has(p.id)&&<span className="self-mvp-mini"> 🏆</span>}</strong><span>{p.wins}</span><span>{p.plays}</span><span>{pct(p)}%</span><span>{s.streaks.get(p.id)?.best??0}</span></div>)}</div>
+  {rows.length===0&&<p className="self-muted">No matching players.</p>}
+  {rows.length>8&&<button type="button" className="self-outline self-results-expand" onClick={()=>setExpanded(v=>!v)}>{expanded?'Show top 8':`Show all ${rows.length} players`}</button>}
+  <p className="self-results-key">W = Wins · GP = Games played · Stk = Longest win streak</p>
   <p className="self-results-note">Win rate is wins divided by games played. MVP: most wins, then head-to-head differential against tied leaders, longest win streak, then win rate. Exact ties share Co-MVP honors.</p>
   {onReopen&&<button className="self-outline" disabled={busy} onClick={onReopen}>Reopen session</button>}
+  {onDelete&&<button className="self-danger-outline" disabled={busy} onClick={onDelete}>Delete session</button>}
  </section>;
 }

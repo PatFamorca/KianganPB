@@ -527,3 +527,19 @@ body{overflow-x:hidden}.self-main{max-width:1120px;margin:0 auto;padding:18px 14
  .self-results-player-metrics strong{font-size:1.08rem;color:#183c2e;font-variant-numeric:tabular-nums}
  .self-results-player-metrics span{font-size:.68rem;color:#5d7066}
 }
+/* v7.18.3 compact results leaderboard */
+.self-results-filters{display:flex;gap:8px;align-items:center;min-width:0}
+.self-results-filters label{min-width:0}.self-results-search{flex:1}.self-results-sort{flex:0 0 145px}
+.self-results-filters input,.self-results-filters select{width:100%;min-width:0;padding:10px 8px;border:1px solid #cbd5d1;border-radius:9px;background:white;color:#183c2e;font:inherit;font-size:.85rem}
+.self-results-expand{width:100%}.self-results-key{font-size:.72rem;color:#64748b;margin:0}
+.self-results-compact{display:none}.self-ended-organizer{padding-bottom:18px}
+@media(max-width:650px){
+.self-results-table-wrap,.self-results-mobile-list{display:none!important}
+.self-results-compact{display:block;min-width:0;width:100%;overflow:hidden}
+.self-results-compact-head,.self-results-compact-row{display:grid;grid-template-columns:24px minmax(0,1fr) 32px 32px 43px 30px;gap:3px;align-items:center;padding:11px 2px;border-bottom:1px solid #e1e8e4;font-size:.75rem;font-variant-numeric:tabular-nums}
+.self-results-compact-head{background:#f1f5f9;color:#52635a;font-size:.66rem;font-weight:700;border-radius:6px 6px 0 0}
+.self-results-compact-row>strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#163e2e}
+.self-results-compact-row>span:not(:first-child),.self-results-compact-head>span:not(:nth-child(2)){text-align:center}
+.self-results-filters{gap:6px}.self-results-sort{flex-basis:128px}
+.self-results-filters input,.self-results-filters select{font-size:.78rem}
+}
