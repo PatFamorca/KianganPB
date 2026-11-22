@@ -5,7 +5,7 @@ export const hash=(s:string)=>createHash('sha256').update(s).digest('hex');
 export const valid=(raw:string,stored:string)=>{const a=Buffer.from(hash(raw),'hex'),b=Buffer.from(stored,'hex');return a.length===b.length&&timingSafeEqual(a,b)};
 export type Skill='beginner'|'intermediate'|'advanced';export type Style='casual'|'balanced'|'competitive';
 export type Player={id:string,name:string,skill:Skill,style:Style,plays:number,wins:number,joined:number,active?:boolean};
-export type Match={id:string,court:number,teams:[string[],string[]],status:'playing'|'finished',score?:[number,number],createdAt:number};
+export type Match={id:string,court:number,teams:[string[],string[]],status:'playing'|'finished',score?:[number,number],winnerTeam?:0|1,createdAt:number};
 export type Session={_id?:ObjectId,ownerHash:string,slug?:string,viewerHash?:string,registrationOpen?:boolean,version:number,name:string,courts:number,rotation:'fifo'|'balanced'|'random'|'fixed',players:Player[],matches:Match[],createdAt:Date,updatedAt:Date,endedAt?:Date|null};
 export const uuid=()=>randomBytes(12).toString('hex');
 // Choose four players with fair participation, diverse teammates and opponents,
