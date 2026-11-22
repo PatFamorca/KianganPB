@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
+const api=readFileSync('src/app/api/self/[[...path]]/route.ts','utf8');const ui=readFileSync('src/components/Organizer.tsx','utf8');
+test('scoreless finish checks ownership through existing route and ends only active match',()=>{assert.match(api,/verb==='finish-no-score'/);assert.match(api,/m.id===body.matchId&&m.status==='playing'/);assert.match(api,/status:'finished' as const/)});
+test('scoreless finish does not award wins and retains score-required option',()=>{const segment=api.split("if(verb==='finish-no-score')")[1].split("if(verb==='finish')")[0];assert.doesNotMatch(segment,/wins:/);assert.match(ui,/End game without scores/);assert.match(ui,/finish-no-score/);assert.match(ui,/Finish match with scores/)});
