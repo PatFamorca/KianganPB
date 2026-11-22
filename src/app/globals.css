@@ -502,3 +502,11 @@ body{overflow-x:hidden}.self-main{max-width:1120px;margin:0 auto;padding:18px 14
 .self-swap-source{outline:2px solid rgba(35,168,113,.35);outline-offset:-2px}
 
 .self-selectable-court:has(.self-swap-controls){}
+
+/* v7.17.1: compact switch control above court; entire team is the winner target outside swap mode. */
+.self-swap-controls{margin:0 0 8px;justify-content:flex-end;gap:6px}
+.self-swap-controls .self-outline{font-size:.76rem;padding:5px 9px;min-height:30px;width:auto}
+.self-swap-controls .self-muted{font-size:.76rem;flex:1 1 150px}
+.self-selectable-court .self-team-winner-button{width:100%;height:100%;align-self:stretch;justify-content:center;touch-action:manipulation}
+.self-selectable-court .self-team-winner-button:hover{border-color:#16a34a}
+.self-selectable-court .self-team-winner-button .self-court-player{pointer-events:none}
