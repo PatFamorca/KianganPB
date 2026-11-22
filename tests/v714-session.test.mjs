@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
+const read=p=>readFileSync(p,'utf8');const api=read('src/app/api/self/[[...path]]/route.ts');const engine=read('src/lib/self-service.ts');const org=read('src/components/Organizer.tsx');const player=read('src/components/PlayerSession.tsx');
+test('home no longer shows open session input',()=>assert.doesNotMatch(read('src/app/page.tsx'),/<OpenSessionLink/));
+test('removing players archives their roster status, not their statistics',()=>{assert.match(api,/active:false/);assert.match(api,/active:true/);assert.match(api,/previous\.id/);assert.match(engine,/active\?:boolean/)});
+test('session end preserves match history and supports reopen',()=>{assert.match(api,/verb==='end'/);assert.match(api,/endedAt:new Date\(\)/);assert.match(api,/verb==='reopen'/);assert.match(org,/Session Results/);assert.match(player,/Final Session Results/)});
+test('auto assignment penalizes repeat partners and opponents',()=>{assert.match(engine,/repeatPartner\*15/);assert.match(engine,/recentPartner\*65/);assert.match(engine,/repeatOpponent\*2/);assert.match(engine,/p\.active!==false/)});

@@ -80,3 +80,10 @@ The homepage and session creation page detect common Messenger/Facebook/Instagra
 - Existing long player/organizer URLs continue to work; existing sessions are preserved. Renaming a custom link invalidates its previous short URL.
 - A partial unique MongoDB index on `slug` is created on custom-link creation/updates. No manual migration is required, but MongoDB index creation permissions are needed.
 - The full Next.js build and live MongoDB behavior must be verified after installing dependencies and deploying a Preview environment.
+
+## v7.14 session updates
+- Home no longer contains Open Session Link (it remains on My Sessions).
+- Removing a player marks them inactive and preserves games, wins and historical matches. Re-adding the same name restores their statistics. Players currently on court must finish first.
+- End session in Organizer → Settings, after all active matches finish. Both organizer and player pages show total completed games, unique players who played, MVP (most wins, tie broken by win rate) and player statistics. Organizers can reopen the session. Reset still clears historical results.
+- Automatic assignment prioritizes equitable games played and penalizes repeat teammates and opponents, with stronger penalties for recently repeated teammates. With only four available players, repeat encounters are unavoidable.
+- Existing sessions require no migration; missing `active` means active and missing `endedAt` means ongoing.

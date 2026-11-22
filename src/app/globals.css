@@ -480,3 +480,5 @@ body{overflow-x:hidden}.self-main{max-width:1120px;margin:0 auto;padding:18px 14
 .self-player-page .self-player-heading .self-muted{margin-bottom:0}
 
 .self-open-link{margin:12px auto;max-width:900px}.self-open-link-row{display:flex;gap:8px;flex-wrap:wrap}.self-open-link-row input{flex:1;min-width:190px}.self-slug-form{display:flex;align-items:end;gap:10px;flex-wrap:wrap;margin:12px 0}.self-slug-form label{flex:1;min-width:190px}.self-slug-form input{display:block;width:100%}.self-slug-form p{width:100%;margin:0}
+
+.self-summary-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}.self-summary-stats>div{background:var(--surface,#f1f5f9);border:1px solid #dbe2e8;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:5px;min-width:0}.self-summary-stats strong{font-size:1.15rem;overflow-wrap:anywhere}.self-summary-stats span{font-size:.76rem;color:#64748b}@media(max-width:500px){.self-summary-stats{grid-template-columns:1fr 1fr}.self-summary-stats>div:last-child{grid-column:span 2}}
